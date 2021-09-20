@@ -1,6 +1,8 @@
 module main
 
+import io
 import math
+import os
 import term
 
 const (
@@ -27,8 +29,21 @@ fn colourise_text(text string, freq f32) string {
 	return output
 }
 
+fn read_file(file os.File) {
+	mut reader := io.new_buffered_reader(reader: file)
+
+	for {
+		line := reader.read_line() or {
+			break
+		}
+
+		println(colourise_text(line, f32(default_freqency)))
+	}
+}
+
 fn main() {
-	text := colourise_text('Hello world', f32(default_freqency))
-	println(text)
+	//file := os.open('lolcat.v') ?
+	file := os.stdin()
+	read_file(file)
 }
 
