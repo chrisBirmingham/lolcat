@@ -7,29 +7,36 @@ import term
 
 const (
 	default_freqency = 0.3
-	hue_width = 127
-	hue_centre = 128
+	default_hue_width = 127
+	default_hue_centre = 128
 )
 
-fn get_colour(char string, freq f32, inc int) string {
-	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
-	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
-	blue := int(math.sin(freq * inc + 4) * hue_width + hue_centre)
+struct Colour {
+	freqency f32
+	hue_width int
+	hue_centre int
+}
+
+fn (c Colour) get_colour(char string, inc int) string {
+	red := int(math.sin(c.freqency * inc + 0) * c.hue_width + c.hue_centre)
+	green := int(math.sin(c.freqency * inc + 2) * c.hue_width + c.hue_centre)
+	blue := int(math.sin(c.freqency * inc + 4) * c.hue_width + c.hue_centre)
 	return term.rgb(red, green, blue, char)
 }
 
-fn colourise_text(text string, freq f32) string {
+fn (c Colour) colourise_text(text string) string {
 	mut output := ''
 	characters := text.split('')
 
 	for inc, char in characters {
-		output += get_colour(char, freq, inc)
+		output += c.get_colour(char, inc)
 	}
 
 	return output
 }
 
 fn read_file(file os.File) {
+	colour := Colour{default_freqency, default_hue_width, default_hue_centre}
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -37,13 +44,13 @@ fn read_file(file os.File) {
 			break
 		}
 
-		println(colourise_text(line, f32(default_freqency)))
+		println(colour.colourise_text(line))
 	}
 }
 
 fn main() {
-	//file := os.open('lolcat.v') ?
-	file := os.stdin()
+	file := os.open('lolcat.v') ?
+	//file := os.stdin()
 	read_file(file)
 }
 
