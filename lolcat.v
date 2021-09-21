@@ -11,20 +11,26 @@ const (
 	default_hue_centre = 128
 )
 
-struct Colour {
-	freqency f32
+struct ColourConfig {
+	freq f32 = default_freqency
+	hue_width int = default_hue_width
+	hue_centre int = default_hue_centre
+}
+
+struct ColourGenerator {
+	freq f32
 	hue_width int
 	hue_centre int
 }
 
-fn (c Colour) get_colour(char string, inc int) string {
-	red := int(math.sin(c.freqency * inc + 0) * c.hue_width + c.hue_centre)
-	green := int(math.sin(c.freqency * inc + 2) * c.hue_width + c.hue_centre)
-	blue := int(math.sin(c.freqency * inc + 4) * c.hue_width + c.hue_centre)
+fn (c ColourGenerator) get_colour(char string, inc int) string {
+	red := int(math.sin(c.freq * inc + 0) * c.hue_width + c.hue_centre)
+	green := int(math.sin(c.freq * inc + 2) * c.hue_width + c.hue_centre)
+	blue := int(math.sin(c.freq * inc + 4) * c.hue_width + c.hue_centre)
 	return term.rgb(red, green, blue, char)
 }
 
-fn (c Colour) colourise_text(text string) string {
+fn (c ColourGenerator) colourise_text(text string) string {
 	mut output := ''
 	characters := text.split('')
 
@@ -35,8 +41,16 @@ fn (c Colour) colourise_text(text string) string {
 	return output
 }
 
+fn new_colour_generator(c ColourConfig) &ColourGenerator {
+	return &ColourGenerator {
+		c.freq,
+		c.hue_width,
+		c.hue_centre
+	}
+}
+
 fn read_file(file os.File) {
-	colour := Colour{default_freqency, default_hue_width, default_hue_centre}
+	colour_generator := new_colour_generator(freq: 0.2)
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -44,7 +58,7 @@ fn read_file(file os.File) {
 			break
 		}
 
-		println(colour.colourise_text(line))
+		println(colour_generator.colourise_text(line))
 	}
 }
 
