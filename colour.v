@@ -57,10 +57,10 @@ pub fn (mut c ColourGenerator) colourise_file(file os.File) string {
 	mut output := ''
 	mut reader := io.new_buffered_reader(reader: file)
 
-  for {
+	for {
 		line := reader.read_line() or {
 			break
-    }
+		}
 
 		output += c.colourise_text(line) + "\n"
 	}
