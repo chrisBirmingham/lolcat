@@ -1,6 +1,8 @@
 module colour
 
+import io
 import math
+import os
 import term
 
 const (
@@ -20,24 +22,47 @@ pub struct ColourGenerator {
 	hue_width int
 	hue_centre int
 mut:
-	inc int
+	checkpoint int
+	in_file bool
 }
 
-fn (c ColourGenerator) get_colour(char string) string {
-	red := int(math.sin(c.freq * c.inc + 0) * c.hue_width + c.hue_centre)
-	green := int(math.sin(c.freq * c.inc + 2) * c.hue_width + c.hue_centre)
-	blue := int(math.sin(c.freq * c.inc + 4) * c.hue_width + c.hue_centre)
+fn (c ColourGenerator) get_colour(char string, inc int) string {
+	red := int(math.sin(c.freq * inc + 0) * c.hue_width + c.hue_centre)
+	green := int(math.sin(c.freq * inc + 2) * c.hue_width + c.hue_centre)
+	blue := int(math.sin(c.freq * inc + 4) * c.hue_width + c.hue_centre)
 	return term.rgb(red, green, blue, char)
 }
 
 pub fn (mut c ColourGenerator) colourise_text(text string) string {
 	mut output := ''
 	characters := text.split('')
-	c.inc = 0
+	mut inc := if c.in_file { c.checkpoint } else { 0 }
 
 	for char in characters {
-		output += c.get_colour(char)
-		c.inc += 1
+		output += c.get_colour(char, inc)
+		inc += 1
+	}
+
+	if c.in_file {
+		c.checkpoint = inc
+	}
+
+	return output
+}
+
+pub fn (mut c ColourGenerator) colourise_file(file os.File) string {
+	c.in_file = true
+	c.checkpoint = 0
+
+	mut output := ''
+	mut reader := io.new_buffered_reader(reader: file)
+
+  for {
+		line := reader.read_line() or {
+			break
+    }
+
+		output += c.colourise_text(line) + "\n"
 	}
 
 	return output
@@ -48,7 +73,8 @@ pub fn new_colour_generator(c ColourConfig) &ColourGenerator {
 		c.freq,
 		c.hue_width,
 		c.hue_centre,
-		0
+		0,
+		false
 	}
 }
 
