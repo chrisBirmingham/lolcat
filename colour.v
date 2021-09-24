@@ -65,6 +65,7 @@ pub fn (mut c ColourGenerator) colourise_file(file os.File) string {
 		output += c.colourise_text(line) + "\n"
 	}
 
+	c.in_file = false
 	return output
 }
 
