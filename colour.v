@@ -18,28 +18,37 @@ pub struct ColourConfig {
 }
 
 pub struct ColourGenerator {
-	freq f32
-	hue_width int
-	hue_centre int
 mut:
 	checkpoint int
 	in_file bool
 }
 
-fn (c ColourGenerator) get_colour(char string, inc int) string {
-	red := int(math.sin(c.freq * inc + 0) * c.hue_width + c.hue_centre)
-	green := int(math.sin(c.freq * inc + 2) * c.hue_width + c.hue_centre)
-	blue := int(math.sin(c.freq * inc + 4) * c.hue_width + c.hue_centre)
+fn (c ColourGenerator) get_colour(
+	char string,
+	freq f32,
+	inc int,
+	hue_width int,
+	hue_centre int
+) string {
+	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
+	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
+	blue := int(math.sin(freq * inc + 4) * hue_width + hue_centre)
 	return term.rgb(red, green, blue, char)
 }
 
-pub fn (mut c ColourGenerator) colourise_text(text string) string {
+pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) string {
 	mut output := ''
 	characters := text.split('')
 	mut inc := if c.in_file { c.checkpoint } else { 0 }
 
 	for char in characters {
-		output += c.get_colour(char, inc)
+		output += c.get_colour(
+			char,
+			conf.freq,
+			inc,
+			conf.hue_width,
+			conf.hue_centre
+		)
 		inc += 1
 	}
 
@@ -50,7 +59,7 @@ pub fn (mut c ColourGenerator) colourise_text(text string) string {
 	return output
 }
 
-pub fn (mut c ColourGenerator) colourise_file(file os.File) string {
+pub fn (mut c ColourGenerator) colourise_file(file os.File, conf ColourConfig) string {
 	c.in_file = true
 	c.checkpoint = 0
 
@@ -62,18 +71,15 @@ pub fn (mut c ColourGenerator) colourise_file(file os.File) string {
 			break
 		}
 
-		output += c.colourise_text(line) + "\n"
+		output += c.colourise_text(line, conf) + "\n"
 	}
 
 	c.in_file = false
 	return output
 }
 
-pub fn new_colour_generator(c ColourConfig) &ColourGenerator {
+pub fn new_colour_generator() &ColourGenerator {
 	return &ColourGenerator {
-		c.freq,
-		c.hue_width,
-		c.hue_centre,
 		0,
 		false
 	}
