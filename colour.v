@@ -6,16 +6,14 @@ import os
 import term
 
 const (
-	default_hue_width = 127
-	default_hue_centre = 128
+	hue_width = 127
+	hue_centre = 128
 )
 
 pub struct ColourConfig {
 	freq f32
 	seed int
 	spread int
-	hue_width int = default_hue_width
-	hue_centre int = default_hue_centre
 }
 
 pub struct ColourGenerator {
@@ -28,8 +26,6 @@ fn (c ColourGenerator) get_colour(
 	char string,
 	freq f32,
 	inc int,
-	hue_width int,
-	hue_centre int
 ) string {
 	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
 	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
@@ -47,9 +43,7 @@ pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) st
 		output += c.get_colour(
 			char,
 			conf.freq,
-			seed + inc / conf.spread,
-			conf.hue_width,
-			conf.hue_centre
+			seed + inc / conf.spread
 		)
 		inc += 1
 	}
