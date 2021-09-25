@@ -75,9 +75,6 @@ pub fn (mut c ColourGenerator) colourise_file(file os.File, conf ColourConfig) s
 }
 
 pub fn new_colour_generator() &ColourGenerator {
-	return &ColourGenerator {
-		0,
-		false
-	}
+	return &ColourGenerator{}
 }
 
