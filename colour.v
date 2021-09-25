@@ -6,13 +6,14 @@ import os
 import term
 
 const (
-	default_freqency = 0.3
 	default_hue_width = 127
 	default_hue_centre = 128
 )
 
 pub struct ColourConfig {
-	freq f32 = default_freqency
+	freq f32
+	seed int
+	spread int
 	hue_width int = default_hue_width
 	hue_centre int = default_hue_centre
 }
@@ -39,13 +40,14 @@ fn (c ColourGenerator) get_colour(
 pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) string {
 	mut output := ''
 	characters := text.split('')
-	mut inc := if c.in_file { c.checkpoint } else { 0 }
+	seed := if c.in_file && c.checkpoint > 0 { c.checkpoint } else { conf.seed }
+	mut inc := 0
 
 	for char in characters {
 		output += c.get_colour(
 			char,
 			conf.freq,
-			inc,
+			seed + inc / conf.spread,
 			conf.hue_width,
 			conf.hue_centre
 		)
@@ -53,7 +55,7 @@ pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) st
 	}
 
 	if c.in_file {
-		c.checkpoint = inc
+		c.checkpoint = seed + inc / conf.spread
 	}
 
 	return output
