@@ -1,3 +1,10 @@
-= Lolcat
+== Lolcat
 
-A reimplementation of the https://github.com/busyloop/lolcat[lolcat]programming in the https://vlang.io/[V Programming Language]
+An imperfect reimplementation of the https://github.com/busyloop/lolcat[lolcat] program in the https://vlang.io/[V Programming Language]
+
+== Installation
+
+  git clone repository
+  cd lolcat
+  v .
+  sudo install ./lolcat /usr/local/bin
