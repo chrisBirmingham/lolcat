@@ -16,16 +16,19 @@ pub struct ColourConfig {
 	spread int
 }
 
+struct Colour {}
+
 pub struct ColourGenerator {
+	colour Colour
 mut:
 	checkpoint int
 	in_file bool
 }
 
-fn (c ColourGenerator) get_colour(
+fn (c Colour) create(
 	char string,
 	freq f32,
-	inc int,
+	inc int
 ) string {
 	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
 	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
@@ -33,14 +36,17 @@ fn (c ColourGenerator) get_colour(
 	return term.rgb(red, green, blue, char)
 }
 
-pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) string {
+pub fn (mut c ColourGenerator) colourise_text(
+	text string,
+	conf ColourConfig
+) string {
 	mut output := ''
 	characters := text.split('')
 	seed := if c.in_file && c.checkpoint > 0 { c.checkpoint } else { conf.seed }
 	mut inc := 0
 
 	for char in characters {
-		output += c.get_colour(
+		output += c.colour.create(
 			char,
 			conf.freq,
 			seed + inc / conf.spread
@@ -55,7 +61,10 @@ pub fn (mut c ColourGenerator) colourise_text(text string, conf ColourConfig) st
 	return output
 }
 
-pub fn (mut c ColourGenerator) colourise_file(file os.File, conf ColourConfig) string {
+pub fn (mut c ColourGenerator) colourise_file(
+	file os.File,
+	conf ColourConfig
+) string {
 	c.in_file = true
 	c.checkpoint = 0
 
@@ -75,6 +84,9 @@ pub fn (mut c ColourGenerator) colourise_file(file os.File, conf ColourConfig) s
 }
 
 pub fn new_colour_generator() &ColourGenerator {
-	return &ColourGenerator{}
+	colour := Colour{}
+	return &ColourGenerator{
+		colour: colour
+	}
 }
 
