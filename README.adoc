@@ -1,0 +1,3 @@
+= Lolcat
+
+A reimplementation of the https://github.com/busyloop/lolcat[lolcat]programming in the https://vlang.io/[V Programming Language]
