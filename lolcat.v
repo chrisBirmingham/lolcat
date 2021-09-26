@@ -38,6 +38,7 @@ fn run_application(cmd cli.Command) ? {
 	freq := cmd.flags.get_float('freq') ?
 	mut seed := cmd.flags.get_int('seed') ?
 	spread := cmd.flags.get_int('spread') ?
+	invert := cmd.flags.get_bool('invert') ?
 
 	if seed == 0 {
 		seed = rand.int_in_range(0, 256)
@@ -56,7 +57,8 @@ fn run_application(cmd cli.Command) ? {
 	config := colour.ColourConfig {
 		freq: f32(freq)
 		seed: seed,
-		spread: spread
+		spread: spread,
+		invert: invert
 	}
 
 	if cmd.args.len == 0 {
@@ -103,6 +105,15 @@ With no FILE, or when FILE is -, read standard input.'
 		abbrev: 'S'
 		description: 'Rainbow spread'
 		default_value: ['3']
+	})
+
+	app.add_flag(cli.Flag{
+		flag: .bool
+		required: false
+		name: 'invert'
+		abbrev: 'i'
+		description: 'Invert fg and bg'
+		default_value: ['false']
 	})
 
 	app.setup()

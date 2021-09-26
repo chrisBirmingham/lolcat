@@ -14,6 +14,7 @@ pub struct ColourConfig {
 	freq f32
 	seed int
 	spread int
+	invert bool
 }
 
 struct Colour {}
@@ -36,6 +37,10 @@ fn (c Colour) create(
 	return term.rgb(red, green, blue, char)
 }
 
+fn (c Colour) invert(text string) string {
+	return term.inverse(text)
+}
+
 pub fn (mut c ColourGenerator) colourise_text(
 	text string,
 	conf ColourConfig
@@ -56,6 +61,10 @@ pub fn (mut c ColourGenerator) colourise_text(
 
 	if c.in_file {
 		c.checkpoint = seed + inc / conf.spread
+	}
+
+	if conf.invert {
+		output = c.colour.invert(output)
 	}
 
 	return output
