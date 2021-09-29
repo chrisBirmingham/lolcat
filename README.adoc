@@ -6,5 +6,5 @@ An imperfect reimplementation of the https://github.com/busyloop/lolcat[lolcat] 
 
   git clone repository
   cd lolcat
-  v .
-  sudo install ./lolcat /usr/local/bin
+  make
+  sudo make install
