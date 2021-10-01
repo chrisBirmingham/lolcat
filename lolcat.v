@@ -74,7 +74,7 @@ fn main() {
 	mut app := cli.Command{
 		name: application_name
 		description: 'Concatenate FILE(s), or standard input, to standard output.
-With no FILE, or when FILE is -, read standard input.'
+With no FILE read standard input.'
 		execute: run_application
 		posix_mode: true,
 		version: application_version
