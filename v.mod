@@ -1,7 +1,7 @@
 Module {
 	name: 'lolcat'
-	description: ''
-	version: '0.0.0'
+	description: 'An imperfect implementation of lolcat in V'
+	version: '1.0.0'
 	license: 'Unlicense'
 	dependencies: []
 }
