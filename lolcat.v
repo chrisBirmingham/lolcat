@@ -2,6 +2,7 @@ module main
 
 import cli
 import colour
+import io
 import os
 import rand
 
@@ -10,28 +11,29 @@ const (
 	application_version = '1.0.0'
 )
 
-fn colourise_file(file_name string, colour_config colour.ColourConfig) {
-	mut colour_generator := colour.new_colour_generator()
+fn colourise_file(
+	file os.File,
+	freq f32,
+	seed int,
+	spread int,
+	invert bool
+) {
+	mut checkpoint := seed
+	mut reader := io.new_buffered_reader(reader: file)
 
-	mut file := os.open(file_name) or {
-		eprintln('lolcat: $file_name: No such file or directory')
-		exit(1)
+	for {
+		line := reader.read_line() or {
+			break
+		}
+
+		output := colour.colourise_text(
+			line,
+			freq: freq, seed: checkpoint, spread: spread, invert: invert
+		)
+		println(output)
+
+		checkpoint = checkpoint + output.len / spread
 	}
-
-	defer {
-		file.close()
-	}
-
-	output := colour_generator.colourise_file(file, colour_config)
-	print(output)
-}
-
-fn colourise_stdin(colour_config colour.ColourConfig) {
-	mut colour_generator := colour.new_colour_generator()
-
-	file := os.stdin()
-	output := colour_generator.colourise_file(file, colour_config)
-	print(output)
 }
 
 fn run_application(cmd cli.Command) ? {
@@ -54,18 +56,18 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
-	config := colour.ColourConfig {
-		freq: f32(freq)
-		seed: seed,
-		spread: spread,
-		invert: invert
-	}
-
 	if cmd.args.len == 0 {
-		colourise_stdin(config)
+		colourise_file(os.stdin(), f32(freq), seed, spread, invert)
 	} else {
 		for file_name in cmd.args {
-			colourise_file(file_name, config)
+			mut file := os.open(file_name) or {
+				eprintln('lolcat: $file_name: No such file or directory')
+				exit(1)
+			}
+
+			colourise_file(file, f32(freq), seed, spread, invert)
+
+			file.close()
 		}
 	}
 }
