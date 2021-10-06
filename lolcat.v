@@ -9,6 +9,7 @@ import rand
 const (
 	application_name = 'lolcat'
 	application_version = '1.0.0'
+	stdin = '-'
 )
 
 fn colourise_file(
@@ -56,17 +57,25 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
-	if cmd.args.len == 0 {
-		colourise_file(os.stdin(), f32(freq), seed, spread, invert)
+	files := if cmd.args.len == 0 {
+		[stdin]
 	} else {
-		for file_name in cmd.args {
-			mut file := os.open(file_name) or {
+		cmd.args
+	}
+
+	for file_name in files {
+		mut file := if file_name == stdin {
+			os.stdin()
+		} else {
+			os.open(file_name) or {
 				eprintln('lolcat: $file_name: No such file or directory')
 				exit(1)
 			}
+		}
 
-			colourise_file(file, f32(freq), seed, spread, invert)
+		colourise_file(file, f32(freq), seed, spread, invert)
 
+		if file_name != stdin {
 			file.close()
 		}
 	}
