@@ -12,14 +12,18 @@ const (
 	stdin = '-'
 )
 
-fn colourise_file(
-	file os.File,
-	freq f32,
-	seed int,
-	spread int,
+struct AppConfig {
+	freq f32
+	seed int
+	spread int
 	invert bool
-) {
-	mut checkpoint := seed
+}
+
+fn colourise_file(file os.File, config AppConfig) {
+	mut checkpoint := config.seed
+	freqency := config.freq
+	spread := config.spread
+	invert := config.invert
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -29,7 +33,10 @@ fn colourise_file(
 
 		output := colour.colourise_text(
 			line,
-			freq: freq, seed: checkpoint, spread: spread, invert: invert
+			freq: freqency,
+			seed: checkpoint,
+			spread: spread,
+			invert: invert
 		)
 		println(output)
 
@@ -57,6 +64,13 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
+	app_config := AppConfig {
+		f32(freq),
+		seed,
+		spread,
+		invert
+	}
+
 	files := if cmd.args.len == 0 {
 		[stdin]
 	} else {
@@ -73,7 +87,7 @@ fn run_application(cmd cli.Command) ? {
 			}
 		}
 
-		colourise_file(file, f32(freq), seed, spread, invert)
+		colourise_file(file, app_config)
 
 		if file_name != stdin {
 			file.close()
