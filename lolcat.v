@@ -2,36 +2,46 @@ module main
 
 import cli
 import colour
+import io
 import os
 import rand
 
 const (
 	application_name = 'lolcat'
-	application_version = '1.0.0'
+	application_version = '1.0.1'
+	stdin = '-'
 )
 
-fn colourise_file(file_name string, colour_config colour.ColourConfig) {
-	mut colour_generator := colour.new_colour_generator()
-
-	mut file := os.open(file_name) or {
-		eprintln('lolcat: $file_name: No such file or directory')
-		exit(1)
-	}
-
-	defer {
-		file.close()
-	}
-
-	output := colour_generator.colourise_file(file, colour_config)
-	print(output)
+struct AppConfig {
+	freq f32
+	seed int
+	spread int
+	invert bool
 }
 
-fn colourise_stdin(colour_config colour.ColourConfig) {
-	mut colour_generator := colour.new_colour_generator()
+fn colourise_file(file os.File, config AppConfig) {
+	mut checkpoint := config.seed
+	freqency := config.freq
+	spread := config.spread
+	invert := config.invert
+	mut reader := io.new_buffered_reader(reader: file)
 
-	file := os.stdin()
-	output := colour_generator.colourise_file(file, colour_config)
-	print(output)
+	for {
+		line := reader.read_line() or {
+			break
+		}
+
+		output := colour.colourise_text(
+			line,
+			freq: freqency,
+			seed: checkpoint,
+			spread: spread,
+			invert: invert
+		)
+		println(output)
+
+		checkpoint = checkpoint + output.len / spread
+	}
 }
 
 fn run_application(cmd cli.Command) ? {
@@ -54,18 +64,33 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
-	config := colour.ColourConfig {
-		freq: f32(freq)
-		seed: seed,
-		spread: spread,
-		invert: invert
+	app_config := AppConfig {
+		f32(freq),
+		seed,
+		spread,
+		invert
 	}
 
-	if cmd.args.len == 0 {
-		colourise_stdin(config)
+	files := if cmd.args.len == 0 {
+		[stdin]
 	} else {
-		for file_name in cmd.args {
-			colourise_file(file_name, config)
+		cmd.args
+	}
+
+	for file_name in files {
+		mut file := if file_name == stdin {
+			os.stdin()
+		} else {
+			os.open(file_name) or {
+				eprintln('lolcat: $file_name: No such file or directory')
+				exit(1)
+			}
+		}
+
+		colourise_file(file, app_config)
+
+		if file_name != stdin {
+			file.close()
 		}
 	}
 }
@@ -104,7 +129,7 @@ With no FILE read standard input.'
 		name: 'spread'
 		abbrev: 'S'
 		description: 'Rainbow spread'
-		default_value: ['3']
+		default_value: ['4']
 	})
 
 	app.add_flag(cli.Flag{
@@ -119,4 +144,3 @@ With no FILE read standard input.'
 	app.setup()
 	app.parse(os.args)
 }
-
