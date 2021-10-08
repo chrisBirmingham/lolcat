@@ -29,15 +29,13 @@ fn invert_colour(text string) string {
 pub fn colourise_text(text string, conf ColourConfig) string {
 	mut output := ''
 	characters := text.split('')
-	mut inc := 0
 
-	for char in characters {
+	for i := 0; i < characters.len; i++ {
 		output += colourise_char(
-			char,
+			characters[i],
 			conf.freq,
-			conf.seed + inc / conf.spread
+			conf.seed + i / conf.spread
 		)
-		inc += 1
 	}
 
 	if conf.invert {
