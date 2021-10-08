@@ -4,8 +4,8 @@ An imperfect implementation of the https://github.com/busyloop/lolcat[lolcat] pr
 
 == Installation
 
-  git clone repository
-  cd lolcat
+  git clone https://github.com/chrisBirmingham/v-lolcat
+  cd v-lolcat
   make
   sudo make install
 
@@ -18,4 +18,3 @@ An imperfect implementation of the https://github.com/busyloop/lolcat[lolcat] pr
 
 * Jim Bumgardner for his excellent tutorial on making annoying rainbows https://krazydad.com/tutorials/makecolors.php[here]
 * And of cource https://github.com/busyloop/lolcat[lolcat]
-

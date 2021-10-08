@@ -8,7 +8,7 @@ import rand
 
 const (
 	application_name = 'lolcat'
-	application_version = '1.0.0'
+	application_version = '1.0.1'
 	stdin = '-'
 )
 
@@ -129,7 +129,7 @@ With no FILE read standard input.'
 		name: 'spread'
 		abbrev: 'S'
 		description: 'Rainbow spread'
-		default_value: ['3']
+		default_value: ['4']
 	})
 
 	app.add_flag(cli.Flag{
@@ -144,4 +144,3 @@ With no FILE read standard input.'
 	app.setup()
 	app.parse(os.args)
 }
-
