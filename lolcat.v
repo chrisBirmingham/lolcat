@@ -5,20 +5,13 @@ import colour
 import io
 import os
 import rand
+import stdin
 
 const (
 	application_name = 'lolcat'
 	application_version = '1.0.1'
 	stdin = '-'
 )
-
-struct StdinWrapper {}
-
-fn (s StdinWrapper) read(mut buf []byte) ?int {
-	line := os.get_raw_line()
-	copy(buf, line.bytes())
-	return line.len
-}
 
 struct App {
 mut:
@@ -62,7 +55,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 	a.checkpoint = conf.seed
 	for file_name in files {
 		if file_name == stdin {
-			a.colourise_file(StdinWrapper{}, conf)
+			a.colourise_file(stdin.new_stdin_reader(), conf)
 			continue
 		}
 
