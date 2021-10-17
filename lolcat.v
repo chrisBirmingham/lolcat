@@ -12,6 +12,14 @@ const (
 	stdin = '-'
 )
 
+struct StdinWrapper {}
+
+fn (s StdinWrapper) read(mut buf []byte) ?int {
+	line := os.get_raw_line()
+	copy(buf, line.bytes())
+	return line.len
+}
+
 struct App {
 mut:
 	checkpoint int
@@ -21,7 +29,10 @@ fn new_app() &App{
 	return &App{}
 }
 
-fn (mut a App) colourise_file(file os.File, conf colour.ColourConfig) {
+fn (mut a App) colourise_file(
+	file io.Reader,
+	conf colour.ColourConfig
+) {
 	freqency := conf.freq
 	spread := conf.spread
 	invert := conf.invert
@@ -50,20 +61,19 @@ fn (mut a App) colourise_file(file os.File, conf colour.ColourConfig) {
 fn (mut a App) run(files []string, conf colour.ColourConfig) {
 	a.checkpoint = conf.seed
 	for file_name in files {
-		mut file := if file_name == stdin {
-			os.stdin()
-		} else {
-			os.open(file_name) or {
-				eprintln('lolcat: $file_name: No such file or directory')
-				exit(1)
-			}
+		if file_name == stdin {
+			a.colourise_file(StdinWrapper{}, conf)
+			continue
+		}
+
+		mut file :=	os.open(file_name) or {
+			eprintln('lolcat: $file_name: No such file or directory')
+			exit(1)
 		}
 
 		a.colourise_file(file, conf)
 
-		if file_name != stdin {
-			file.close()
-		}
+		file.close()
 	}
 }
 
