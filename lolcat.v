@@ -9,7 +9,7 @@ import stdin
 
 const (
 	application_name = 'lolcat'
-	application_version = '1.0.1'
+	application_version = '1.1.0'
 	stdin = '-'
 )
 
