@@ -12,19 +12,19 @@ const (
 	stdin = '-'
 )
 
-struct AppConfig {
-	freq f32
-	spread int
-	invert bool
+struct App {
 mut:
-	seed int
+	checkpoint int
 }
 
-fn colourise_file(file os.File, config AppConfig) int {
-	mut checkpoint := config.seed
-	freqency := config.freq
-	spread := config.spread
-	invert := config.invert
+fn new_app() &App{
+	return &App{}
+}
+
+fn (mut a App) colourise_file(file os.File, conf colour.ColourConfig) {
+	freqency := conf.freq
+	spread := conf.spread
+	invert := conf.invert
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -32,21 +32,39 @@ fn colourise_file(file os.File, config AppConfig) int {
 			break
 		}
 
-		checkpoint += 1
+		a.checkpoint += 1
 
 		output := colour.colourise_text(
 			line,
 			freq: freqency,
-			seed: checkpoint,
+			seed: a.checkpoint,
 			spread: spread,
 			invert: invert
 		)
 		println(output)
 
-		checkpoint += output.len / spread
+		a.checkpoint += output.len / spread
 	}
+}
 
-	return checkpoint
+fn (mut a App) run(files []string, conf colour.ColourConfig) {
+	a.checkpoint = conf.seed
+	for file_name in files {
+		mut file := if file_name == stdin {
+			os.stdin()
+		} else {
+			os.open(file_name) or {
+				eprintln('lolcat: $file_name: No such file or directory')
+				exit(1)
+			}
+		}
+
+		a.colourise_file(file, conf)
+
+		if file_name != stdin {
+			file.close()
+		}
+	}
 }
 
 fn run_application(cmd cli.Command) ? {
@@ -69,12 +87,7 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
-	mut app_config := AppConfig {
-		f32(freq),
-		spread,
-		invert
-		seed
-	}
+	mut app := new_app()
 
 	files := if cmd.args.len == 0 {
 		[stdin]
@@ -82,22 +95,13 @@ fn run_application(cmd cli.Command) ? {
 		cmd.args
 	}
 
-	for file_name in files {
-		mut file := if file_name == stdin {
-			os.stdin()
-		} else {
-			os.open(file_name) or {
-				eprintln('lolcat: $file_name: No such file or directory')
-				exit(1)
-			}
-		}
-
-		app_config.seed = colourise_file(file, app_config)
-
-		if file_name != stdin {
-			file.close()
-		}
-	}
+	app.run(
+		files,
+		freq: f32(freq),
+		spread: spread,
+		invert: invert
+		seed: seed
+	)
 }
 
 fn main() {
