@@ -14,12 +14,13 @@ const (
 
 struct AppConfig {
 	freq f32
-	seed int
 	spread int
 	invert bool
+mut:
+	seed int
 }
 
-fn colourise_file(file os.File, config AppConfig) {
+fn colourise_file(file os.File, config AppConfig) int {
 	mut checkpoint := config.seed
 	freqency := config.freq
 	spread := config.spread
@@ -31,6 +32,8 @@ fn colourise_file(file os.File, config AppConfig) {
 			break
 		}
 
+		checkpoint += 1
+
 		output := colour.colourise_text(
 			line,
 			freq: freqency,
@@ -40,8 +43,10 @@ fn colourise_file(file os.File, config AppConfig) {
 		)
 		println(output)
 
-		checkpoint = checkpoint + output.len / spread
+		checkpoint += output.len / spread
 	}
+
+	return checkpoint
 }
 
 fn run_application(cmd cli.Command) ? {
@@ -64,11 +69,11 @@ fn run_application(cmd cli.Command) ? {
 		exit(1)
 	}
 
-	app_config := AppConfig {
+	mut app_config := AppConfig {
 		f32(freq),
-		seed,
 		spread,
 		invert
+		seed
 	}
 
 	files := if cmd.args.len == 0 {
@@ -87,7 +92,7 @@ fn run_application(cmd cli.Command) ? {
 			}
 		}
 
-		colourise_file(file, app_config)
+		app_config.seed = colourise_file(file, app_config)
 
 		if file_name != stdin {
 			file.close()
