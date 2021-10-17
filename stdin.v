@@ -10,7 +10,7 @@ pub fn new_stdin_reader() &StdinReader {
 
 pub fn (s StdinReader) read(mut buf []byte) ?int {
 	line := os.get_raw_line()
-  copy(buf, line.bytes())
-  return line.len
+	copy(buf, line.bytes())
+	return line.len
 }
 
