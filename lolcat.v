@@ -14,12 +14,15 @@ const (
 )
 
 struct App {
+	stdin_reader stdin.StdinReader
 mut:
 	checkpoint int
 }
 
 fn new_app() &App{
-	return &App{}
+	return &App{
+		stdin_reader: stdin.new_stdin_reader()
+	}
 }
 
 fn (mut a App) colourise_file(
@@ -55,7 +58,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 	a.checkpoint = conf.seed
 	for file_name in files {
 		if file_name == stdin {
-			a.colourise_file(stdin.new_stdin_reader(), conf)
+			a.colourise_file(a.stdin_reader, conf)
 			continue
 		}
 
