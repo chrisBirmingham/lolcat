@@ -60,7 +60,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 		}
 
 		mut file := os.open(file_name) or {
-			eprintln('lolcat: $file_name: No such file or directory')
+			eprintln('$application_name: $file_name: No such file or directory')
 			exit(1)
 		}
 
