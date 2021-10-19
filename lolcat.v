@@ -25,13 +25,7 @@ fn new_app() &App{
 	}
 }
 
-fn (mut a App) colourise_file(
-	file io.Reader,
-	conf colour.ColourConfig
-) {
-	freqency := conf.freq
-	spread := conf.spread
-	invert := conf.invert
+fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -43,14 +37,14 @@ fn (mut a App) colourise_file(
 
 		output := colour.colourise_text(
 			line,
-			freq: freqency,
+			freq: conf.freq,
 			seed: a.checkpoint,
-			spread: spread,
-			invert: invert
+			spread: conf.spread,
+			invert: conf.invert
 		)
 		println(output)
 
-		a.checkpoint += output.len / spread
+		a.checkpoint += output.len / conf.spread
 	}
 }
 
