@@ -12,7 +12,6 @@ An imperfect implementation of the https://github.com/busyloop/lolcat[lolcat] pr
 == Key differences to cat
 
 * Providing - as a commandline argument is not supported. The V cli module interprets - as a start of a commandline flag and will try to match it to a registered flag which will fail
-* When reading from stdin, lolcat will wait for all input before printing to stdout instead of echoing each line after pressing enter
 
 == Inspiration
 

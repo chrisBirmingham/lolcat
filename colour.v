@@ -9,6 +9,7 @@ const (
 )
 
 pub struct ColourConfig {
+pub:
 	freq f32
 	spread int
 	invert bool
