@@ -9,6 +9,7 @@ import stdin
 import v.vmod
 
 const (
+	exit_failure = 1
 	stdin = '-'
 )
 
@@ -59,7 +60,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 
 		mut file := os.open(file_name) or {
 			eprintln('$a.name: $file_name: No such file or directory')
-			exit(1)
+			exit(exit_failure)
 		}
 
 		a.colourise_file(file, conf)
@@ -80,12 +81,12 @@ fn run_application(cmd cli.Command) ? {
 
 	if spread <= 0 {
 		eprintln('Spread must be greater than zero')
-		exit(1)
+		exit(exit_failure)
 	}
 
 	if freq <= 0 {
 		eprintln('Freqency must be greater than zero')
-		exit(1)
+		exit(exit_failure)
 	}
 
 	mut app := new_app(cmd.name)
@@ -107,7 +108,8 @@ fn run_application(cmd cli.Command) ? {
 
 fn main() {
 	mod := vmod.decode(@VMOD_FILE) or {
-		panic(err.msg)
+		eprintln('Failure to read v.mod file. Reason: $err.msg')
+		exit(exit_failure)
 	}
 
 	mut app := cli.Command{
