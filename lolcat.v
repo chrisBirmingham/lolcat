@@ -6,21 +6,23 @@ import io
 import os
 import rand
 import stdin
+import v.vmod
 
 const (
-	application_name = 'lolcat'
-	application_version = '1.1.0'
+	exit_failure = 1
 	stdin = '-'
 )
 
 struct App {
+	name string
 	stdin_reader stdin.StdinReader
 mut:
 	checkpoint int
 }
 
-fn new_app() &App{
+fn new_app(name string) &App{
 	return &App{
+		name: name
 		stdin_reader: stdin.new_stdin_reader()
 	}
 }
@@ -57,8 +59,8 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 		}
 
 		mut file := os.open(file_name) or {
-			eprintln('$application_name: $file_name: No such file or directory')
-			exit(1)
+			eprintln('$a.name: $file_name: No such file or directory')
+			exit(exit_failure)
 		}
 
 		a.colourise_file(file, conf)
@@ -79,15 +81,15 @@ fn run_application(cmd cli.Command) ? {
 
 	if spread <= 0 {
 		eprintln('Spread must be greater than zero')
-		exit(1)
+		exit(exit_failure)
 	}
 
 	if freq <= 0 {
 		eprintln('Freqency must be greater than zero')
-		exit(1)
+		exit(exit_failure)
 	}
 
-	mut app := new_app()
+	mut app := new_app(cmd.name)
 
 	files := if cmd.args.len == 0 {
 		[stdin]
@@ -105,13 +107,18 @@ fn run_application(cmd cli.Command) ? {
 }
 
 fn main() {
+	mod := vmod.decode(@VMOD_FILE) or {
+		eprintln('Failure to read v.mod file. Reason: $err.msg')
+		exit(exit_failure)
+	}
+
 	mut app := cli.Command{
-		name: application_name
+		name: mod.name
 		description: 'Concatenate FILE(s), or standard input, to standard output.
 With no FILE read standard input.'
 		execute: run_application
 		posix_mode: true,
-		version: application_version
+		version: mod.version
 	}
 
 	app.add_flag(cli.Flag{
