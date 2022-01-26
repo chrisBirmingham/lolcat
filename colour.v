@@ -16,11 +16,11 @@ pub:
 	seed int
 }
 
-fn colourise_char(char string, freq f32, inc int) string {
+fn colourise_char(c string, freq f32, inc int) string {
 	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
 	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
 	blue := int(math.sin(freq * inc + 4) * hue_width + hue_centre)
-	return term.rgb(red, green, blue, char)
+	return term.rgb(red, green, blue, c)
 }
 
 fn invert_colour(text string) string {
