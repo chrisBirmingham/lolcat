@@ -76,7 +76,10 @@ fn run_application(cmd cli.Command) ? {
 	invert := cmd.flags.get_bool('invert') ?
 
 	if seed == 0 {
-		seed = rand.int_in_range(0, 256)
+		seed = rand.int_in_range(0, 256) or {
+			eprintln('Failed to generate random colour seed')
+			exit(exit_failure)
+		}
 	}
 
 	if spread <= 0 {
@@ -108,7 +111,7 @@ fn run_application(cmd cli.Command) ? {
 
 fn main() {
 	mod := vmod.decode(@VMOD_FILE) or {
-		eprintln('Failure to read v.mod file. Reason: $err.msg')
+		eprintln('Failure to read v.mod file. Reason: $err.msg()')
 		exit(exit_failure)
 	}
 
