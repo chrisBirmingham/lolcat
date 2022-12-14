@@ -69,11 +69,11 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 	}
 }
 
-fn run_application(cmd cli.Command) ? {
-	freq := cmd.flags.get_float('freq') ?
-	mut seed := cmd.flags.get_int('seed') ?
-	spread := cmd.flags.get_int('spread') ?
-	invert := cmd.flags.get_bool('invert') ?
+fn run_application(cmd cli.Command)! {
+	freq := cmd.flags.get_float('freq')!
+	mut seed := cmd.flags.get_int('seed')!
+	spread := cmd.flags.get_int('spread')!
+	invert := cmd.flags.get_bool('invert')!
 
 	if seed == 0 {
 		seed = rand.int_in_range(0, 256) or {
