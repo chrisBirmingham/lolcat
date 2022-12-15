@@ -74,6 +74,8 @@ fn run_application(cmd cli.Command)! {
 	mut seed := cmd.flags.get_int('seed')!
 	spread := cmd.flags.get_int('spread')!
 	invert := cmd.flags.get_bool('invert')!
+	help := cmd.flags.get_bool('help')!
+	version := cmd.flags.get_bool('version')!
 
 	if seed == 0 {
 		seed = rand.int_in_range(0, 256) or {
@@ -92,6 +94,23 @@ fn run_application(cmd cli.Command)! {
 		exit(exit_failure)
 	}
 
+	colour_config := colour.ColourConfig{
+		freq: f32(freq),
+		spread: spread,
+		invert: invert
+		seed: seed
+	}
+
+	if help {
+		println(colour.colourise_text(cmd.help_message(), colour_config))
+		return
+	}
+
+	if version {
+		println(colour.colourise_text('$cmd.name version $cmd.version', colour_config))
+		return
+	}
+
 	mut app := new_app(cmd.name)
 
 	files := if cmd.args.len == 0 {
@@ -100,13 +119,7 @@ fn run_application(cmd cli.Command)! {
 		cmd.args
 	}
 
-	app.run(
-		files,
-		freq: f32(freq),
-		spread: spread,
-		invert: invert
-		seed: seed
-	)
+	app.run(files, colour_config)
 }
 
 fn main() {
@@ -121,6 +134,9 @@ fn main() {
 With no FILE read standard input.'
 		execute: run_application
 		posix_mode: true,
+		disable_man: true,
+		disable_help: true,
+		disable_version: true,
 		version: mod.version
 	}
 
@@ -157,6 +173,24 @@ With no FILE read standard input.'
 		name: 'invert'
 		abbrev: 'i'
 		description: 'Invert fg and bg'
+		default_value: ['false']
+	})
+
+	app.add_flag(cli.Flag{
+		flag: .bool
+		required: false
+		name: 'help'
+		abbrev: 'h'
+		description: 'Display this help'
+		default_value: ['false']
+	})
+
+	app.add_flag(cli.Flag{
+		flag: .bool
+		required: false
+		name: 'version'
+		abbrev: 'v'
+		description: 'Prints version information'
 		default_value: ['false']
 	})
 
