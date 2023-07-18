@@ -1,19 +1,21 @@
-== Lolcat
+# Lolcat
 
-An imperfect implementation of the https://github.com/busyloop/lolcat[lolcat] program in the https://vlang.io/[V Programming Language]
+An imperfect implementation of the [lolcat](https://github.com/busyloop/lolcat) program in the [V Programming Language](https://vlang.io/)
 
-== Installation
+## Installation
 
-  git clone https://github.com/chrisBirmingham/v-lolcat
-  cd v-lolcat
-  make
-  sudo make install
+```sh
+git clone https://github.com/chrisBirmingham/v-lolcat
+cd v-lolcat
+make
+sudo make install
+```
 
-== Key differences to cat
+## Key differences to cat
 
 * Providing - as a commandline argument is not supported. The V cli module interprets - as a start of a commandline flag and will try to match it to a registered flag which will fail
 
-== Inspiration
+## Inspiration
 
 * Jim Bumgardner for his excellent tutorial on making annoying rainbows https://krazydad.com/tutorials/makecolors.php[here]
 * And of cource https://github.com/busyloop/lolcat[lolcat]
