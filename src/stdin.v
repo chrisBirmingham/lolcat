@@ -4,7 +4,7 @@ import os
 
 pub struct StdinReader {}
 
-pub fn new_stdin_reader() &StdinReader {
+pub fn StdinReader.new() &StdinReader {
 	return &StdinReader{}
 }
 
