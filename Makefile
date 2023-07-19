@@ -1,11 +1,11 @@
 EXE=lolcat
-SOURCES=*.v
+SRC=src/*v
 
 .PHONY: all install clean
 
 all: $(EXE)
 
-$(EXE): $(SOURCES)
+$(EXE): $(SRC)
 	v . -prod
 
 install: $(EXE)
@@ -13,4 +13,3 @@ install: $(EXE)
 
 clean:
 	rm $(EXE)
-

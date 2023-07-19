@@ -20,10 +20,10 @@ mut:
 	checkpoint int
 }
 
-fn new_app(name string) &App{
+fn App.new(name string) &App{
 	return &App{
 		name: name
-		stdin_reader: stdin.new_stdin_reader()
+		stdin_reader: stdin.StdinReader.new()
 	}
 }
 
@@ -111,7 +111,7 @@ fn run_application(cmd cli.Command)! {
 		return
 	}
 
-	mut app := new_app(cmd.name)
+	mut app := App.new(cmd.name)
 
 	files := if cmd.args.len == 0 {
 		[stdin]
