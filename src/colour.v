@@ -1,5 +1,6 @@
 module colour
 
+import arrays
 import math
 import term
 
@@ -28,16 +29,11 @@ fn invert_colour(text string) string {
 }
 
 pub fn colourise_text(text string, conf ColourConfig) string {
-	mut output := ''
-	characters := text.split('')
-
-	for i := 0; i < characters.len; i++ {
-		output += colourise_char(
-			characters[i],
-			conf.freq,
-			conf.seed + i / conf.spread
-		)
+	colour_fn := fn [conf] (i int, c string) string {
+		return colourise_char(c, conf.freq, conf.seed + i / conf.spread)
 	}
+
+	mut output := arrays.map_indexed(text.split(''), colour_fn).join('')
 
 	if conf.invert {
 		output = invert_colour(output)
@@ -45,4 +41,3 @@ pub fn colourise_text(text string, conf ColourConfig) string {
 
 	return output
 }
-
