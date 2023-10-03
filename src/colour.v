@@ -33,11 +33,7 @@ pub fn colourise_text(text string, conf ColourConfig) string {
 		return colourise_char(c, conf.freq, conf.seed + i / conf.spread)
 	}
 
-	mut output := arrays.map_indexed(text.split(''), colour_fn).join('')
+	output := arrays.map_indexed(text.split(''), colour_fn).join('')
 
-	if conf.invert {
-		output = invert_colour(output)
-	}
-
-	return output
+	return if conf.invert { invert_colour(output) } else { output }
 }
