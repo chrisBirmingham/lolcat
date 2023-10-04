@@ -67,7 +67,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 	}
 }
 
-fn run_application(cmd cli.Command)! {
+fn run_application(cmd cli.Command) ! {
 	freq := cmd.flags.get_float('freq')!
 	mut seed := cmd.flags.get_int('seed')!
 	spread := cmd.flags.get_int('spread')!
@@ -93,9 +93,9 @@ fn run_application(cmd cli.Command)! {
 	}
 
 	colour_config := colour.ColourConfig{
-		freq: f32(freq),
-		spread: spread,
-		invert: invert,
+		freq: f32(freq)
+		spread: spread
+		invert: invert
 		seed: seed
 	}
 
@@ -131,10 +131,10 @@ fn main() {
 		description: 'Concatenate FILE(s), or standard input, to standard output.
 With no FILE read standard input.'
 		execute: run_application
-		posix_mode: true,
-		disable_man: true,
-		disable_help: true,
-		disable_version: true,
+		posix_mode: true
+		disable_man: true
+		disable_help: true
+		disable_version: true
 		version: mod.version
 	}
 
