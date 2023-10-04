@@ -20,7 +20,7 @@ mut:
 	checkpoint int
 }
 
-fn App.new(name string) &App{
+fn App.new(name string) &App {
 	return &App{
 		name: name
 		stdin_reader: stdin.StdinReader.new()
@@ -31,9 +31,7 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
-		line := reader.read_line() or {
-			break
-		}
+		line := reader.read_line() or { break }
 
 		a.checkpoint += 1
 
@@ -59,7 +57,7 @@ fn (mut a App) run(files []string, conf colour.ColourConfig) {
 		}
 
 		mut file := os.open(file_name) or {
-			eprintln('$a.name: $file_name: No such file or directory')
+			eprintln('${a.name}: ${file_name}: No such file or directory')
 			exit(exit_failure)
 		}
 
@@ -97,7 +95,7 @@ fn run_application(cmd cli.Command)! {
 	colour_config := colour.ColourConfig{
 		freq: f32(freq),
 		spread: spread,
-		invert: invert
+		invert: invert,
 		seed: seed
 	}
 
@@ -107,7 +105,7 @@ fn run_application(cmd cli.Command)! {
 	}
 
 	if version {
-		println(colour.colourise_text('$cmd.name version $cmd.version', colour_config))
+		println(colour.colourise_text('${cmd.name} version ${cmd.version}', colour_config))
 		return
 	}
 
@@ -124,7 +122,7 @@ fn run_application(cmd cli.Command)! {
 
 fn main() {
 	mod := vmod.decode(@VMOD_FILE) or {
-		eprintln('Failure to read v.mod file. Reason: $err.msg()')
+		eprintln('Failure to read v.mod file. Reason: ${err.msg()}')
 		exit(exit_failure)
 	}
 
