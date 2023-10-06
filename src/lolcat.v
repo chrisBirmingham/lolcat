@@ -35,13 +35,8 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
 
 		a.checkpoint += 1
 
-		output := colour.colourise_text(
-			line,
-			freq: conf.freq,
-			seed: a.checkpoint,
-			spread: conf.spread,
-			invert: conf.invert
-		)
+		child_conf := colour.ColourConfig{...conf, seed: a.checkpoint}
+		output := colour.colourise_text(line, child_conf)
 		println(output)
 
 		a.checkpoint += output.len / conf.spread
