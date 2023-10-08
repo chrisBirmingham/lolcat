@@ -15,19 +15,19 @@ const (
 
 struct App {
 	name string
-	stdin_reader stdin.StdinReader
+	stdin_reader stdin.Reader
 mut:
 	checkpoint int
 }
 
-fn App.new(name string) &App {
-	return &App{
+fn App.new(name string) App {
+	return App{
 		name: name
-		stdin_reader: stdin.StdinReader.new()
+		stdin_reader: stdin.Reader.new()
 	}
 }
 
-fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
+fn (mut a App) colourise_file(file io.Reader, conf colour.Config) {
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
@@ -35,7 +35,7 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
 
 		a.checkpoint += 1
 
-		child_conf := colour.ColourConfig{...conf, seed: a.checkpoint}
+		child_conf := colour.Config{...conf, seed: a.checkpoint}
 		output := colour.colourise_text(line, child_conf)
 		println(output)
 
@@ -43,7 +43,7 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.ColourConfig) {
 	}
 }
 
-fn (mut a App) run(files []string, conf colour.ColourConfig) {
+fn (mut a App) run(files []string, conf colour.Config) {
 	a.checkpoint = conf.seed
 	for file_name in files {
 		if file_name == stdin {
@@ -87,12 +87,7 @@ fn run_application(cmd cli.Command) ! {
 		exit(exit_failure)
 	}
 
-	colour_config := colour.ColourConfig{
-		freq: f32(freq)
-		spread: spread
-		invert: invert
-		seed: seed
-	}
+	colour_config := colour.Config{f32(freq), spread, invert, seed}
 
 	if help {
 		println(colour.colourise_text(cmd.help_message(), colour_config))

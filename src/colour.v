@@ -9,7 +9,7 @@ const (
 	hue_centre = 128
 )
 
-pub struct ColourConfig {
+pub struct Config {
 pub:
 	freq f32
 	spread int
@@ -28,7 +28,7 @@ fn invert_colour(text string) string {
 	return term.inverse(text)
 }
 
-pub fn colourise_text(text string, conf ColourConfig) string {
+pub fn colourise_text(text string, conf Config) string {
 	colour_fn := fn [conf] (i int, c string) string {
 		return colourise_char(c, conf.freq, conf.seed + i / conf.spread)
 	}
