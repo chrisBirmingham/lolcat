@@ -35,7 +35,11 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.Config) {
 
 		a.checkpoint += 1
 
-		child_conf := colour.Config{...conf, seed: a.checkpoint}
+		child_conf := colour.Config{
+			...conf
+			seed: a.checkpoint
+		}
+
 		output := colour.colourise_text(line, child_conf)
 		println(output)
 
