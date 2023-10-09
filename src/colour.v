@@ -1,5 +1,6 @@
 module colour
 
+import arrays
 import math
 import term
 
@@ -8,7 +9,7 @@ const (
 	hue_centre = 128
 )
 
-pub struct ColourConfig {
+pub struct Config {
 pub:
 	freq f32
 	spread int
@@ -27,22 +28,16 @@ fn invert_colour(text string) string {
 	return term.inverse(text)
 }
 
-pub fn colourise_text(text string, conf ColourConfig) string {
-	mut output := ''
-	characters := text.split('')
-
-	for i := 0; i < characters.len; i++ {
-		output += colourise_char(
-			characters[i],
-			conf.freq,
-			conf.seed + i / conf.spread
-		)
+pub fn colourise_text(text string, conf Config) string {
+	colour_fn := fn [conf] (i int, c string) string {
+		return colourise_char(c, conf.freq, conf.seed + i / conf.spread)
 	}
 
-	if conf.invert {
-		output = invert_colour(output)
-	}
+	output := arrays.map_indexed(text.split(''), colour_fn).join('')
 
+	if conf.invert { 
+		return invert_colour(output)
+	}
+	
 	return output
 }
-
