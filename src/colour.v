@@ -35,5 +35,9 @@ pub fn colourise_text(text string, conf Config) string {
 
 	output := arrays.map_indexed(text.split(''), colour_fn).join('')
 
-	return if conf.invert { invert_colour(output) } else { output }
+	if conf.invert { 
+		return invert_colour(output)
+	}
+	
+	return output
 }
