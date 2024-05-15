@@ -103,12 +103,7 @@ fn run_application(cmd cli.Command) ! {
 
 	mut app := App.new(cmd.name)
 
-	files := if cmd.args.len == 0 {
-		[stdin]
-	} else {
-		cmd.args
-	}
-
+	files := if cmd.args.len != 0 { cmd.args } else { [stdin] }
 	app.run(files, colour_config)
 }
 
