@@ -8,10 +8,9 @@ import rand
 import stdin
 import v.vmod
 
-const (
-	exit_failure = 1
-	stdin = '-'
-)
+const exit_failure = 1
+const stdin = '-'
+const tab_width = 8
 
 struct App {
 	name string
@@ -31,7 +30,8 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.Config) {
 	mut reader := io.new_buffered_reader(reader: file)
 
 	for {
-		line := reader.read_line() or { break }
+		mut line := reader.read_line() or { break }
+		line = line.replace('\t', ' '.repeat(tab_width))
 
 		a.checkpoint += 1
 
@@ -40,10 +40,8 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.Config) {
 			seed: a.checkpoint
 		}
 
-		output := colour.colourise_text(line, child_conf)
-		println(output)
-
-		a.checkpoint += output.len / conf.spread
+		println(colour.colourise_text(line, child_conf))
+		a.checkpoint += line.len / conf.spread
 	}
 }
 
@@ -105,12 +103,7 @@ fn run_application(cmd cli.Command) ! {
 
 	mut app := App.new(cmd.name)
 
-	files := if cmd.args.len == 0 {
-		[stdin]
-	} else {
-		cmd.args
-	}
-
+	files := if cmd.args.len != 0 { cmd.args } else { [stdin] }
 	app.run(files, colour_config)
 }
 
@@ -124,11 +117,14 @@ fn main() {
 		name: mod.name
 		description: 'Concatenate FILE(s), or standard input, to standard output.
 With no FILE read standard input.'
+		usage: '[FILES]...'
 		execute: run_application
 		posix_mode: true
-		disable_man: true
-		disable_help: true
-		disable_version: true
+		defaults: struct {
+			man: false
+			help: false
+			version: false
+		}
 		version: mod.version
 	}
 

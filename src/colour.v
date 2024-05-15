@@ -4,10 +4,8 @@ import arrays
 import math
 import term
 
-const (
-	hue_width = 127
-	hue_centre = 128
-)
+const hue_width = 127
+const hue_centre = 128
 
 pub struct Config {
 pub:
@@ -18,9 +16,9 @@ pub:
 }
 
 fn colourise_char(c string, freq f32, inc int) string {
-	red := int(math.sin(freq * inc + 0) * hue_width + hue_centre)
-	green := int(math.sin(freq * inc + 2) * hue_width + hue_centre)
-	blue := int(math.sin(freq * inc + 4) * hue_width + hue_centre)
+	red := int(math.sin(freq * inc + 0) * colour.hue_width + colour.hue_centre)
+	green := int(math.sin(freq * inc + 2) * colour.hue_width + colour.hue_centre)
+	blue := int(math.sin(freq * inc + 4) * colour.hue_width + colour.hue_centre)
 	return term.rgb(red, green, blue, c)
 }
 
@@ -38,6 +36,6 @@ pub fn colourise_text(text string, conf Config) string {
 	if conf.invert { 
 		return invert_colour(output)
 	}
-	
+
 	return output
 }
