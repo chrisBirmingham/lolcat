@@ -10,7 +10,7 @@ import v.vmod
 
 const exit_failure = 1
 const stdin = '-'
-const tabstop_width = 8
+const tab_width = 8
 
 struct App {
 	name string
@@ -31,7 +31,7 @@ fn (mut a App) colourise_file(file io.Reader, conf colour.Config) {
 
 	for {
 		mut line := reader.read_line() or { break }
-		line = line.replace('\t', ' '.repeat(8))
+		line = line.replace('\t', ' '.repeat(tab_width))
 
 		a.checkpoint += 1
 
@@ -122,6 +122,7 @@ fn main() {
 		name: mod.name
 		description: 'Concatenate FILE(s), or standard input, to standard output.
 With no FILE read standard input.'
+		usage: '[FILES]...'
 		execute: run_application
 		posix_mode: true
 		defaults: struct {
