@@ -1,15 +1,18 @@
-EXE=lolcat
-SRC=src/*v
+.PHONY: all clean install
 
-.PHONY: all install clean
+PROG=lolcat
+CC=gcc
+CLIB=-lm
+CFLAGS=-std=c11 -Wall
 
-all: $(EXE)
+all: $(PROG)
 
-$(EXE): $(SRC)
-	v . -prod
-
-install: $(EXE)
-	cp $(EXE) /usr/local/bin
+lolcat: main.c
+	$(CC) main.c -o $(PROG) $(CLIB) $(CFLAGS)
 
 clean:
-	rm $(EXE)
+	rm $(PROG)
+
+install:
+	cp $(PROG) /usr/local/bin
+
