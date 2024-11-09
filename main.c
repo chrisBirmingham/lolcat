@@ -53,7 +53,7 @@ static const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
 "  lolcat f - g  Output f's contents, then standard input, then g's contents.\n"
 "  lolcat        Copy standard input to standard output.\n";
 
-static inline int rand_int()
+static int rand_int()
 {
   /**
    * Attempt to reduce modulo bias in standard C rand
