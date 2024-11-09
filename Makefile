@@ -3,7 +3,7 @@
 PROG=lolcat
 CC=gcc
 CLIB=-lm
-CFLAGS=-std=c11 -Wall
+CFLAGS=-O2 -std=c11 -Wall
 
 all: $(PROG)
 

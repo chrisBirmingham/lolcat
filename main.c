@@ -17,11 +17,11 @@ extern int optind;
 extern int optopt;
 extern int opterr; 
 
-const int HUE_WIDTH = 127;
-const int HUE_CENTRE = 128;
-const float DEFAULT_SPREAD = 2.0;
-const float DEFAULT_FREQ = 0.3;
-const double PI = 2 * acos(0.0);
+static const int HUE_WIDTH = 127;
+static const int HUE_CENTRE = 128;
+static const float DEFAULT_SPREAD = 2.0;
+static const float DEFAULT_FREQ = 0.3;
+static const double PI = 2 * acos(0.0);
 
 typedef struct {
   float spread;
@@ -35,9 +35,9 @@ const ColourOptions default_opts = {
   false
 };
 
-const char* VERSION = "1.0.0\n";
+static const char* VERSION = "1.0.0\n";
 
-const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
+static const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
 "Concatenate FILE(s) to standard output.\n"
 "\n"
 "With no FILE, or when FILE is -, read standard input.\n"
@@ -53,9 +53,21 @@ const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
 "  lolcat f - g  Output f's contents, then standard input, then g's contents.\n"
 "  lolcat        Copy standard input to standard output.\n";
 
-static inline int random()
+static inline int rand_int()
 {
-  return rand() % 256 + 1;
+  /**
+   * Attempt to reduce modulo bias in standard C rand
+   * https://stackoverflow.com/questions/10984974/why-do-people-say-there-is-modulo-bias-when-using-a-random-number-generator
+   */
+  int max_int = 256;
+  int r;
+  int range = RAND_MAX - (((RAND_MAX % max_int) + 1) % max_int);
+
+  do {
+    r = rand();
+  } while (r > range);
+
+  return r % max_int + 1;
 }
 
 static inline int colour(float angle)
@@ -132,7 +144,7 @@ static void error(const char* fmt, ...)
   vsnprintf(buf, len, fmt, args);
   va_end(args);
   
-  rgb_fprintf(stderr, buf, default_opts, random());
+  rgb_fprintf(stderr, buf, default_opts, rand_int());
   free(buf);
 }
 
@@ -164,7 +176,11 @@ static int int_input(const char* in)
 
 int main(int argc, char** argv)
 {
-  setlocale(LC_ALL, "");
+  if (setlocale(LC_ALL, "") == NULL) {
+    fprintf(stderr, "Failed to set locale\n");
+    abort();
+  }
+
   srand(time(NULL));
 
   int opt;
@@ -177,10 +193,10 @@ int main(int argc, char** argv)
   while ((opt = getopt(argc, argv, "p:F:S:ivh")) != -1) {
     switch (opt) {
       case 'v':
-        rgb_printf(VERSION, default_opts, random());
+        rgb_printf(VERSION, default_opts, rand_int());
         return EXIT_SUCCESS;
       case 'h':
-        rgb_printf(USAGE, default_opts, random());
+        rgb_printf(USAGE, default_opts, rand_int());
         return EXIT_SUCCESS;
       case 'S':
         seed = int_input(optarg);
@@ -218,7 +234,7 @@ int main(int argc, char** argv)
   }
 
   if (seed == 0) {
-    seed = random();
+    seed = rand_int();
   }
 
   ColourOptions opts = {
