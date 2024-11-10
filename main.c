@@ -76,7 +76,7 @@ static inline int colour(double angle)
 
 static void rgb_fputc(FILE* fp, wint_t c, double angle)
 {
-  float pi = acos(-1);
+  double pi = acos(-1);
   int r = colour(angle);
   int g = colour(angle + 2 * pi / 3);
   int b = colour(angle + 4 * pi / 3);
