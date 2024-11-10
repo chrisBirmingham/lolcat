@@ -19,13 +19,12 @@ extern int opterr;
 
 static const int HUE_WIDTH = 127;
 static const int HUE_CENTRE = 128;
-static const float DEFAULT_SPREAD = 2.0;
-static const float DEFAULT_FREQ = 0.3;
-static const double PI = 2 * acos(0.0);
+static const double DEFAULT_SPREAD = 2.0;
+static const double DEFAULT_FREQ = 0.3;
 
 typedef struct {
-  float spread;
-  float freq;
+  double spread;
+  double freq;
   bool invert;
 } ColourOptions;
 
@@ -70,23 +69,24 @@ static int rand_int()
   return r % max_int + 1;
 }
 
-static inline int colour(float angle)
+static inline int colour(double angle)
 {
   return sin(angle) * HUE_WIDTH + HUE_CENTRE;
 }
 
-static void rgb_fputc(FILE* fp, wint_t c, float angle)
+static void rgb_fputc(FILE* fp, wint_t c, double angle)
 {
+  float pi = acos(-1);
   int r = colour(angle);
-  int g = colour(angle + 2 * PI / 3);
-  int b = colour(angle + 4 * PI / 3);
+  int g = colour(angle + 2 * pi / 3);
+  int b = colour(angle + 4 * pi / 3);
   fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc\x1b[39m", r, g, b, c);
 }
 
 static int rgb_fprintf(FILE* fp, const char* str, ColourOptions opts, int seed)
 {
   for (; *str; str++) {
-    float angle = opts.freq * (seed / opts.spread);
+    double angle = opts.freq * (seed / opts.spread);
     rgb_fputc(fp, *str, angle);
     seed += 1;
   }
@@ -108,7 +108,7 @@ static int colourise_file(FILE* fp, ColourOptions opts, int seed)
   }
 
   while ((c = fgetwc(fp)) != WEOF) {
-    float angle = opts.freq * (seed / opts.spread);
+    double angle = opts.freq * (seed / opts.spread);
     rgb_fputc(stdout, c, angle);
     seed += 1;
   }
@@ -148,7 +148,7 @@ static void error(const char* fmt, ...)
   free(buf);
 }
 
-static float float_input(const char* in)
+static double float_input(const char* in)
 {
   char* err;
   double out = strtod(in, &err);
@@ -186,8 +186,8 @@ int main(int argc, char** argv)
   int opt;
   int seed = 0;
   bool invert = false;
-  float spread = DEFAULT_SPREAD;
-  float freq = DEFAULT_FREQ;
+  double spread = DEFAULT_SPREAD;
+  double freq = DEFAULT_FREQ;
 
   opterr = 0; /* Disable getopts default error to stderr */
   while ((opt = getopt(argc, argv, "p:F:S:ivh")) != -1) {
