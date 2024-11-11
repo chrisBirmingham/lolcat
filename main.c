@@ -21,6 +21,7 @@ static const int HUE_WIDTH = 127;
 static const int HUE_CENTRE = 128;
 static const double DEFAULT_SPREAD = 2.0;
 static const double DEFAULT_FREQ = 0.3;
+static const char* STDIN_ARGV[] = {"-", NULL};
 
 typedef struct {
   double spread;
@@ -85,10 +86,9 @@ static void rgb_fputc(FILE* fp, wint_t c, double angle)
 
 static int rgb_fprintf(FILE* fp, const char* str, ColourOptions opts, int seed)
 {
-  for (; *str; str++) {
+  for (; *str; str++, seed++) {
     double angle = opts.freq * (seed / opts.spread);
     rgb_fputc(fp, *str, angle);
-    seed += 1;
   }
 
   return seed;
@@ -122,7 +122,7 @@ static int colourise_file(FILE* fp, ColourOptions opts, int seed)
 
 static inline bool is_stdin(const char* path)
 {
-  return (path == NULL || strcmp(path, "-") == 0);
+  return (strcmp(path, "-") == 0);
 }
 
 static void error(const char* fmt, ...)
@@ -172,6 +172,43 @@ static int int_input(const char* in)
   }
 
   return out;
+}
+
+static FILE* open_file(const char* path)
+{
+  FILE* fp = stdin;
+
+  if (!is_stdin(path)) {
+    fp = fopen(path, "r");
+  }
+
+  return fp;
+}
+
+static int cat(char** argv, ColourOptions opts, int seed)
+{
+  /* argv modification influenced by busybox */
+  if (*argv == NULL) {
+    argv = (char**)&STDIN_ARGV;
+  }
+
+  do {
+    const char* path = *argv;
+    FILE* fp = open_file(path);
+
+    if (fp == NULL) {
+      error("lolcat: %s: %s\n", path, strerror(errno));
+      return EXIT_FAILURE;
+    }
+
+    seed = colourise_file(fp, opts, seed);
+
+    if (!is_stdin(path)) {
+      fclose(fp);
+    }
+  } while (*++argv);
+
+  return EXIT_SUCCESS;
 }
 
 int main(int argc, char** argv)
@@ -243,22 +280,8 @@ int main(int argc, char** argv)
     invert
   };
 
-  do {
-    const char* path = argv[optind];
-    FILE* fp = stdin;
-    
-    if (!is_stdin(path) && ((fp = fopen(path, "r")) == NULL)) {
-      error("lolcat: %s: %s\n", path, strerror(errno));
-      return EXIT_FAILURE;
-    }
+  argv += optind;
 
-    seed = colourise_file(fp, opts, seed);
-
-    if (!is_stdin(path)) {
-      fclose(fp);
-    }
-  } while (++optind < argc);
-
-  return EXIT_SUCCESS;
+  return cat(argv, opts, seed);
 }
 
