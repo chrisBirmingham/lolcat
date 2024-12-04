@@ -75,28 +75,35 @@ static inline int colour(double angle)
   return sin(angle) * HUE_WIDTH + HUE_CENTRE;
 }
 
-static void rgb_fputc(FILE* fp, wint_t c, double angle)
+static void rgb_fputc(wint_t c, double angle, FILE* fp)
 {
   double pi = acos(-1);
   int r = colour(angle);
   int g = colour(angle + 2 * pi / 3);
   int b = colour(angle + 4 * pi / 3);
-  fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc\x1b[39m", r, g, b, c);
+  fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
 }
 
-static int rgb_fprintf(FILE* fp, const char* str, ColourOptions opts, int seed)
+static inline void rgb_putc(wint_t c, double angle)
+{
+  rgb_fputc(c, angle, stdout);
+}
+
+static int rgb_fputs(const char* str, ColourOptions opts, int seed, FILE* fp)
 {
   for (; *str; str++, seed++) {
     double angle = opts.freq * (seed / opts.spread);
-    rgb_fputc(fp, *str, angle);
+    rgb_fputc(*str, angle, fp);
   }
+
+  fputs("\x1b[39m", fp);
 
   return seed;
 }
 
-static inline int rgb_printf(const char* str, ColourOptions opts, int seed)
+static inline int rgb_puts(const char* str, ColourOptions opts, int seed)
 {
-  return rgb_fprintf(stdout, str, opts, seed);
+  return rgb_fputs(str, opts, seed, stdout);
 }
 
 static int colourise_file(FILE* fp, ColourOptions opts, int seed)
@@ -104,17 +111,17 @@ static int colourise_file(FILE* fp, ColourOptions opts, int seed)
   wint_t c;
   
   if (opts.invert) {
-    printf("\x1b[7m");
+    fputs("\x1b[7m", stdout);
   }
 
   while ((c = fgetwc(fp)) != WEOF) {
     double angle = opts.freq * (seed / opts.spread);
-    rgb_fputc(stdout, c, angle);
+    rgb_putc(c, angle);
     seed += 1;
   }
 
   if (opts.invert) {
-    printf("\x1b[27m");
+    fputs("\x1b[27m", stdout);
   }
 
   return seed;
@@ -133,7 +140,7 @@ static void error(const char* fmt, ...)
   char* buf = malloc(len);
 
   if (buf == NULL) {
-    fprintf(stderr, "Failed to allocate memory for error message\n");
+    fputs("Failed to allocate memory for error message\n", stderr);
     abort();
   }
 
@@ -144,7 +151,7 @@ static void error(const char* fmt, ...)
   vsnprintf(buf, len, fmt, args);
   va_end(args);
   
-  rgb_fprintf(stderr, buf, default_opts, rand_int());
+  rgb_fputs(buf, default_opts, rand_int(), stderr);
   free(buf);
 }
 
@@ -214,7 +221,7 @@ static int cat(char** argv, ColourOptions opts, int seed)
 int main(int argc, char** argv)
 {
   if (setlocale(LC_ALL, "") == NULL) {
-    fprintf(stderr, "Failed to set locale\n");
+    fputs("Failed to set locale\n", stderr);
     abort();
   }
 
@@ -230,10 +237,10 @@ int main(int argc, char** argv)
   while ((opt = getopt(argc, argv, "p:F:S:ivh")) != -1) {
     switch (opt) {
       case 'v':
-        rgb_printf(VERSION, default_opts, rand_int());
+        rgb_puts(VERSION, default_opts, rand_int());
         return EXIT_SUCCESS;
       case 'h':
-        rgb_printf(USAGE, default_opts, rand_int());
+        rgb_puts(USAGE, default_opts, rand_int());
         return EXIT_SUCCESS;
       case 'S':
         seed = int_input(optarg);
