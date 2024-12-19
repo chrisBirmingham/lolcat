@@ -133,6 +133,9 @@ static inline bool is_stdin(const char* path)
 }
 
 static void error(const char* fmt, ...)
+  __attribute__ ((format (printf, 1, 2)));
+
+static void error(const char* fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -277,9 +280,7 @@ int main(int argc, char** argv)
     }
   }
 
-  if (seed == 0) {
-    seed = rand_int();
-  }
+  seed = !seed ? rand_int() : seed;
 
   ColourOptions opts = {
     spread,
