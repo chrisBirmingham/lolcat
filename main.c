@@ -53,6 +53,9 @@ static const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
 "  lolcat f - g  Output f's contents, then standard input, then g's contents.\n"
 "  lolcat        Copy standard input to standard output.\n";
 
+static void error(const char* fmt, ...)
+  __attribute__ ((format (printf, 1, 2)));
+
 static int rand_int()
 {
   /**
@@ -75,7 +78,7 @@ static inline int colour(double angle)
   return sin(angle) * HUE_WIDTH + HUE_CENTRE;
 }
 
-static void rgb_fputc(wint_t c, double angle, FILE* fp)
+static void rgb_fputc(wchar_t c, double angle, FILE* fp)
 {
   double pi = acos(-1);
   int r = colour(angle);
@@ -84,7 +87,7 @@ static void rgb_fputc(wint_t c, double angle, FILE* fp)
   fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
 }
 
-static inline void rgb_putc(wint_t c, double angle)
+static inline void rgb_putc(wchar_t c, double angle)
 {
   rgb_fputc(c, angle, stdout);
 }
@@ -120,6 +123,11 @@ static int colourise_file(FILE* fp, ColourOptions opts, int seed)
     seed += 1;
   }
 
+  if (!feof(fp)) {
+    error("\nEncountered error while reading stream: %s\n", strerror(errno));
+    return -1;
+  }
+
   if (opts.invert) {
     fputs("\x1b[27m", stdout);
   }
@@ -133,10 +141,8 @@ static inline bool is_stdin(const char* path)
 }
 
 static void error(const char* fmt, ...)
-  __attribute__ ((format (printf, 1, 2)));
-
-static void error(const char* fmt, ...)
 {
+  fflush(stdout);
   va_list args;
   va_start(args, fmt);
   int len = vsnprintf(NULL, 0, fmt, args) + 1;
@@ -212,6 +218,10 @@ static int cat(char** argv, ColourOptions opts, int seed)
     }
 
     seed = colourise_file(fp, opts, seed);
+
+    if (seed < 0) {
+      return EXIT_FAILURE;
+    }
 
     if (!is_stdin(path)) {
       fclose(fp);
