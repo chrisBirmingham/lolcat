@@ -10,6 +10,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <wchar.h>
+#include <wctype.h>
 
 /* Pull in external getopt globals */
 extern char* optarg;
@@ -84,7 +85,13 @@ static void rgb_fputc(wchar_t c, double angle, FILE* fp)
   int r = colour(angle);
   int g = colour(angle + 2 * pi / 3);
   int b = colour(angle + 4 * pi / 3);
-  fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
+
+  if (iswcntrl(c) && c != 9 && c != 10) {
+    c = (c == 127) ? '?' : (c + 64);
+    fprintf(fp, "\x1b[38;2;%d;%d;%dm^%lc", r, g, b, c);
+  } else {
+    fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
+  }
 }
 
 static inline void rgb_putc(wchar_t c, double angle)
