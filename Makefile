@@ -16,6 +16,7 @@ clean:
 	rm $(PROG)
 
 install:
+	mkdir -p $(BINDIR)
 	cp $(PROG) $(BINDIR)
 
 uninstall:
