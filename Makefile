@@ -1,9 +1,11 @@
-.PHONY: all clean install
+.PHONY: all clean install uninstall
 
 PROG=lolcat
-CC=gcc
+CC?=gcc
 CLIB=-lm
 CFLAGS=-O2 -std=c11 -Wall
+PREFIX?=/usr/local
+BINDIR=$(PREFIX)/bin
 
 all: $(PROG)
 
@@ -14,5 +16,8 @@ clean:
 	rm $(PROG)
 
 install:
-	cp $(PROG) /usr/local/bin
+	cp $(PROG) $(BINDIR)
+
+uninstall:
+	rm -f $(BINDIR)/$(PROG)
 
