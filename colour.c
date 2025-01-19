@@ -13,8 +13,12 @@ enum ColourSupport {
   COLOUR_256
 };
 
+static int TAB = 9;
+static int LINE_FEED = 10;
+
 static const int HUE_WIDTH = 127;
 static const int HUE_CENTRE = 128;
+
 static enum ColourSupport COLOUR_SUPPORT = COLOUR_TRUE;
 
 static inline int ansi_domain(int c)
@@ -54,7 +58,7 @@ static void rgb_fputc(wchar_t c, double angle, FILE* fp)
   int g = true_colour(angle + 2 * pi / 3);
   int b = true_colour(angle + 4 * pi / 3);
 
-  bool is_cntrl = iswcntrl(c) && c != 9 && c != 10;
+  bool is_cntrl = iswcntrl(c) && c != LINE_FEED;
 
   if (is_cntrl) {
     c = (c == 127) ? '?' : (c + 64);
@@ -65,6 +69,14 @@ static void rgb_fputc(wchar_t c, double angle, FILE* fp)
     fprintf(fp, is_cntrl ? "\x1b[38;5;%dm^%lc" : "\x1b[38;5;%dm%lc", rgb, c);
   } else {
     fprintf(fp, is_cntrl ? "\x1b[38;2;%d;%d;%dm^%lc" : "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
+  }
+}
+
+static void handle_tab(const struct Colour* colour, int seed, FILE* fp)
+{
+  for (int i = 0; i < 8; i++, seed++) {
+    double angle = colour->freq * (seed / colour->spread);
+    rgb_fputc(' ', angle, fp);
   }
 }
 
@@ -98,6 +110,12 @@ int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed
      */
     if (ret == 0) {
       ret = 1;
+    }
+
+    if (c == TAB) {
+      handle_tab(colour, seed, fp);
+      seed += 7;
+      continue;
     }
 
     double angle = colour->freq * (seed / colour->spread);
