@@ -30,11 +30,11 @@ make install PREFIX=~/.local
 
 ## Limitations
 
-* The truecolor colour palette is currently the only supported colour palette. 
-* The program doesn't check to see if the terminal supports truecolor so if you're using something like MacOS's terminal, the output will look wrong.
+* The truecolor and rgb256 colour palettes are the only supported colour palettes. Truecolor is the default colour patlette if it cannot detect your supported colour pallet via `COLORTERM` or `TERM`
+* If you have `NO_COLOR` set or `TERM` is set to dumb, lolcat will exit with `EXIT_FAILURE` instead of printing plain text. Use `cat` if you don't want coloured text.
 
-## Inspiration
+## Inspiration/Attributions
 
 * Jim Bumgardner for his excellent tutorial on making annoying rainbows [here](https://krazydad.com/tutorials/makecolors.php)
+* The [Ruby Paint Gem](https://github.com/janlelis/paint) for their truecolor to rgb256 conversion logic
 * And of cource [lolcat](https://github.com/busyloop/lolcat)
-

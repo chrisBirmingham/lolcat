@@ -6,13 +6,19 @@ CLIB=-lm
 CFLAGS=-O2 -std=c11 -Wall
 PREFIX?=/usr/local
 BINDIR=$(PREFIX)/bin
+SRC=main.c colour.c
+OBJ=$(SRC:.c=.o)
 
 all: $(PROG)
 
-lolcat: main.c
-	$(CC) main.c -o $(PROG) $(CLIB) $(CFLAGS)
+$(PROG): $(OBJ)
+	$(CC) $(OBJ) -o $(PROG) $(CLIB) $(CFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
+	rm $(OBJ)
 	rm $(PROG)
 
 install:
@@ -21,4 +27,3 @@ install:
 
 uninstall:
 	rm -f $(BINDIR)/$(PROG)
-

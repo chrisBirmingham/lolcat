@@ -6,3 +6,4 @@ lolcat
 *.so
 *.dylib
 *.dll
+*.o

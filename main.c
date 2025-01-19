@@ -1,6 +1,8 @@
+/* Needed for getline */
+#define _POSIX_C_SOURCE 200809L
+
 #include <errno.h>
 #include <getopt.h>
-#include <math.h>
 #include <locale.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -8,9 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
-#include <wchar.h>
-#include <wctype.h>
+#include "colour.h"
 
 /* Pull in external getopt globals */
 extern char* optarg;
@@ -18,19 +18,11 @@ extern int optind;
 extern int optopt;
 extern int opterr; 
 
-static const int HUE_WIDTH = 127;
-static const int HUE_CENTRE = 128;
 static const double DEFAULT_SPREAD = 2.0;
 static const double DEFAULT_FREQ = 0.3;
 static const char* STDIN_ARGV[] = {"-", NULL};
 
-typedef struct {
-  double spread;
-  double freq;
-  bool invert;
-} ColourOptions;
-
-const ColourOptions default_opts = {
+const struct Colour default_colour = {
   DEFAULT_SPREAD,
   DEFAULT_FREQ,
   false
@@ -74,69 +66,21 @@ static int rand_int()
   return r % max_int + 1;
 }
 
-static inline int colour(double angle)
+static int colourise_file(FILE* fp, const struct Colour* colour, int seed)
 {
-  return sin(angle) * HUE_WIDTH + HUE_CENTRE;
-}
+  char* buf = NULL;
+  size_t len = 0;
+  ssize_t bytes_read = 0;
 
-static void rgb_fputc(wchar_t c, double angle, FILE* fp)
-{
-  double pi = acos(-1);
-  int r = colour(angle);
-  int g = colour(angle + 2 * pi / 3);
-  int b = colour(angle + 4 * pi / 3);
-
-  if (iswcntrl(c) && c != 9 && c != 10) {
-    c = (c == 127) ? '?' : (c + 64);
-    fprintf(fp, "\x1b[38;2;%d;%d;%dm^%lc", r, g, b, c);
-  } else {
-    fprintf(fp, "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
-  }
-}
-
-static inline void rgb_putc(wchar_t c, double angle)
-{
-  rgb_fputc(c, angle, stdout);
-}
-
-static int rgb_fputs(const char* str, ColourOptions opts, int seed, FILE* fp)
-{
-  for (; *str; str++, seed++) {
-    double angle = opts.freq * (seed / opts.spread);
-    rgb_fputc(*str, angle, fp);
+  while ((bytes_read = getline(&buf, &len, fp)) != -1) {
+    seed = rgb_puts(buf, bytes_read, colour, seed);
   }
 
-  fputs("\x1b[39m", fp);
-
-  return seed;
-}
-
-static inline int rgb_puts(const char* str, ColourOptions opts, int seed)
-{
-  return rgb_fputs(str, opts, seed, stdout);
-}
-
-static int colourise_file(FILE* fp, ColourOptions opts, int seed)
-{
-  wint_t c;
-  
-  if (opts.invert) {
-    fputs("\x1b[7m", stdout);
-  }
-
-  while ((c = fgetwc(fp)) != WEOF) {
-    double angle = opts.freq * (seed / opts.spread);
-    rgb_putc(c, angle);
-    seed += 1;
-  }
+  free(buf);
 
   if (!feof(fp)) {
     error("\nEncountered error while reading stream: %s\n", strerror(errno));
     return -1;
-  }
-
-  if (opts.invert) {
-    fputs("\x1b[27m", stdout);
   }
 
   return seed;
@@ -152,8 +96,8 @@ static void error(const char* fmt, ...)
   fflush(stdout);
   va_list args;
   va_start(args, fmt);
-  int len = vsnprintf(NULL, 0, fmt, args) + 1;
-  char* buf = malloc(len);
+  int alloc_len = vsnprintf(NULL, 0, fmt, args) + 1;
+  char* buf = malloc(alloc_len);
 
   if (buf == NULL) {
     fputs("Failed to allocate memory for error message\n", stderr);
@@ -164,10 +108,10 @@ static void error(const char* fmt, ...)
 
   /* Calling vsnprintf modifed the va_arg, have to reinit with va_start */
   va_start(args, fmt);
-  vsnprintf(buf, len, fmt, args);
+  vsnprintf(buf, alloc_len, fmt, args);
   va_end(args);
   
-  rgb_fputs(buf, default_opts, rand_int(), stderr);
+  rgb_fputs(buf, alloc_len - 1, &default_colour, rand_int(), stderr);
   free(buf);
 }
 
@@ -176,8 +120,10 @@ static double float_input(const char* in)
   char* err;
   double out = strtod(in, &err);
 
-  /* err points to the character after the last processed number, if it's not
-   * equal to \0 then we didn't complete the string */
+  /**
+   * err points to the character after the last processed number, if it's not
+   * equal to \0 then we didn't complete the string
+   */
   if (*err != '\0') {
     return -1;
   }
@@ -208,7 +154,7 @@ static FILE* open_file(const char* path)
   return fp;
 }
 
-static int cat(char** argv, ColourOptions opts, int seed)
+static int cat(char** argv, const struct Colour* colour, int seed)
 {
   /* argv modification influenced by busybox */
   if (*argv == NULL) {
@@ -224,7 +170,7 @@ static int cat(char** argv, ColourOptions opts, int seed)
       return EXIT_FAILURE;
     }
 
-    seed = colourise_file(fp, opts, seed);
+    seed = colourise_file(fp, colour, seed);
 
     if (seed < 0) {
       return EXIT_FAILURE;
@@ -245,6 +191,11 @@ int main(int argc, char** argv)
     abort();
   }
 
+  if (detect_colour_support() != 0) {
+    fputs("Failed to detect color support or color support disabled\n", stderr);
+    abort();
+  }
+
   srand(time(NULL));
 
   int opt;
@@ -257,10 +208,10 @@ int main(int argc, char** argv)
   while ((opt = getopt(argc, argv, "p:F:S:ivh")) != -1) {
     switch (opt) {
       case 'v':
-        rgb_puts(VERSION, default_opts, rand_int());
+        rgb_puts(VERSION, strlen(VERSION), &default_colour, rand_int());
         return EXIT_SUCCESS;
       case 'h':
-        rgb_puts(USAGE, default_opts, rand_int());
+        rgb_puts(USAGE, strlen(USAGE), &default_colour, rand_int());
         return EXIT_SUCCESS;
       case 'S':
         seed = int_input(optarg);
@@ -299,7 +250,7 @@ int main(int argc, char** argv)
 
   seed = !seed ? rand_int() : seed;
 
-  ColourOptions opts = {
+  struct Colour colour = {
     spread,
     freq,
     invert
@@ -307,6 +258,5 @@ int main(int argc, char** argv)
 
   argv += optind;
 
-  return cat(argv, opts, seed);
+  return cat(argv, &colour, seed);
 }
-
