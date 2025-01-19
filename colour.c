@@ -6,7 +6,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
-#include "color.h"
+#include "colour.h"
 
 enum ColourSupport {
   COLOUR_TRUE,

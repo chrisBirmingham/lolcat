@@ -6,7 +6,7 @@ CLIB=-lm
 CFLAGS=-O2 -std=c11 -Wall
 PREFIX?=/usr/local
 BINDIR=$(PREFIX)/bin
-SRC=main.c color.c
+SRC=main.c colour.c
 OBJ=$(SRC:.c=.o)
 
 all: $(PROG)

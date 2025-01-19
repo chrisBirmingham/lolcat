@@ -11,7 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "color.h"
+#include "colour.h"
 
 /* Pull in external getopt globals */
 extern char* optarg;
