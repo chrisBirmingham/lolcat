@@ -71,9 +71,10 @@ static int colourise_file(FILE* fp, const struct Colour* colour, int seed)
 {
   char* buf = NULL;
   size_t len = 0;
+  ssize_t bytes_read = 0;
 
-  while (getline(&buf, &len, fp) != -1) {
-    seed = rgb_puts(buf, len, colour, seed);
+  while ((bytes_read = getline(&buf, &len, fp)) != -1) {
+    seed = rgb_puts(buf, bytes_read, colour, seed);
   }
 
   free(buf);
@@ -96,8 +97,8 @@ static void error(const char* fmt, ...)
   fflush(stdout);
   va_list args;
   va_start(args, fmt);
-  int len = vsnprintf(NULL, 0, fmt, args) + 1;
-  char* buf = malloc(len);
+  int alloc_len = vsnprintf(NULL, 0, fmt, args) + 1;
+  char* buf = malloc(alloc_len);
 
   if (buf == NULL) {
     fputs("Failed to allocate memory for error message\n", stderr);
@@ -108,10 +109,10 @@ static void error(const char* fmt, ...)
 
   /* Calling vsnprintf modifed the va_arg, have to reinit with va_start */
   va_start(args, fmt);
-  vsnprintf(buf, len, fmt, args);
+  vsnprintf(buf, alloc_len, fmt, args);
   va_end(args);
   
-  rgb_fputs(buf, len, &default_colour, rand_int(), stderr);
+  rgb_fputs(buf, alloc_len - 1, &default_colour, rand_int(), stderr);
   free(buf);
 }
 
@@ -120,8 +121,10 @@ static double float_input(const char* in)
   char* err;
   double out = strtod(in, &err);
 
-  /* err points to the character after the last processed number, if it's not
-   * equal to \0 then we didn't complete the string */
+  /**
+   * err points to the character after the last processed number, if it's not
+   * equal to \0 then we didn't complete the string
+   */
   if (*err != '\0') {
     return -1;
   }

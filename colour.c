@@ -79,8 +79,8 @@ int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed
 
   mbstate_t mb = {0};
 
-  do { 
-    int ret = mbrtowc(&c, str, end - str, &mb);
+  for (size_t ret = 0; str < end; str += ret, seed++) {
+    ret = mbrtowc(&c, str, end - str, &mb);
 
     /** 
      * If we encounter an invalid character, print the replacement character
@@ -95,16 +95,14 @@ int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed
     /**
      * mbrtowc returns 0 when it encounters a null byte within a string. 
      * Increment over it otherwise we'll prematurely leave the loop
-     */ 
+     */
     if (ret == 0) {
       ret = 1;
     }
 
     double angle = colour->freq * (seed / colour->spread);
     rgb_fputc(c, angle, fp);
-    str += ret;
-    seed++;
-  } while (*str);
+  }
 
   fputs("\x1b[39m", fp);
 
