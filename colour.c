@@ -18,6 +18,7 @@ static int LINE_FEED = 10;
 
 static const int HUE_WIDTH = 127;
 static const int HUE_CENTRE = 128;
+static const char* TAB_SHIFT = "        ";
 
 static enum ColourSupport COLOUR_SUPPORT = COLOUR_TRUE;
 
@@ -51,43 +52,34 @@ static int truecolour2rgb(int r, int g, int b)
     ansi_domain(b);
 }
 
-static void rgb_fputc(wchar_t c, double angle, FILE* fp)
+static void print_char(wchar_t c, double angle, FILE* fp)
 {
   double pi = acos(-1);
   int r = true_colour(angle);
   int g = true_colour(angle + 2 * pi / 3);
   int b = true_colour(angle + 4 * pi / 3);
 
-  bool is_cntrl = iswcntrl(c) && c != LINE_FEED;
+  wchar_t print[3] = {0};
 
-  if (is_cntrl) {
-    c = (c == 127) ? '?' : (c + 64);
-  } 
+  if (iswcntrl(c) && c != LINE_FEED) {
+    print[0] = L'^';
+    print[1] = (c == 127) ? '?' : (c + 64);
+  } else {
+    print[0] = c;
+  }
 
   if (COLOUR_SUPPORT == COLOUR_256) {
     int rgb = truecolour2rgb(r, g, b);
-    fprintf(fp, is_cntrl ? "\x1b[38;5;%dm^%lc" : "\x1b[38;5;%dm%lc", rgb, c);
+    fprintf(fp, "\x1b[38;5;%dm%S", rgb, print);
   } else {
-    fprintf(fp, is_cntrl ? "\x1b[38;2;%d;%d;%dm^%lc" : "\x1b[38;2;%d;%d;%dm%lc", r, g, b, c);
+    fprintf(fp, "\x1b[38;2;%d;%d;%dm%S", r, g, b, print);
   }
 }
 
-static void handle_tab(const struct Colour* colour, int seed, FILE* fp)
-{
-  for (int i = 0; i < 8; i++, seed++) {
-    double angle = colour->freq * (seed / colour->spread);
-    rgb_fputc(' ', angle, fp);
-  }
-}
-
-int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed, FILE* fp)
+static int print_str(const char* str, size_t len, const struct Colour* colour, int seed, FILE* fp)
 {
   const char* end = str + len;
   wchar_t c;
-
-  if (colour->invert) {
-    fputs("\x1b[7m", stdout);
-  }
 
   mbstate_t mb = {0};
 
@@ -113,14 +105,25 @@ int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed
     }
 
     if (c == TAB) {
-      handle_tab(colour, seed, fp);
+      print_str(TAB_SHIFT, 8, colour, seed, fp);
       seed += 7;
       continue;
     }
 
     double angle = colour->freq * (seed / colour->spread);
-    rgb_fputc(c, angle, fp);
+    print_char(c, angle, fp);
   }
+
+  return seed;
+}
+
+int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed, FILE* fp)
+{
+  if (colour->invert) {
+    fputs("\x1b[7m", stdout);
+  }
+
+  seed = print_str(str, len, colour, seed, fp);
 
   fputs("\x1b[39m", fp);
 
