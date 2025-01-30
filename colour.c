@@ -63,7 +63,7 @@ static void print_char(wchar_t c, double angle, FILE* fp)
 
   if (iswcntrl(c) && c != LINE_FEED) {
     print[0] = L'^';
-    print[1] = (c == 127) ? '?' : (c + 64);
+    print[1] = c ^ 0x40;
   } else {
     print[0] = c;
   }
