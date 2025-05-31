@@ -1,0 +1,50 @@
+.TH lolcat 1
+.SH NAME
+Lolcat \- Concatenate FILE(s) to standard output
+.SH SYNOPSIS
+.B lolcat [OPTION]... [FILE]...
+.SH DESCRIPTION
+\fBlolcat\fP is a program which concatenates FILE(s) to standard output as a colourful rainbow. With no inputs accepts input from stdin.
+.SH OPTIONS
+.TP
+.BR \-f\ \fIfrequency\fR
+The rainbow frequency. Default is 0.2
+.TP
+.BR \-p\ \fIspread\fR
+The rainbow spread. Default is 3.0
+.TP
+.BR \-S\ \fIseed\fR
+The rainbow seed. Default is random
+.TP
+.BR \-i
+Inverts the forground and background
+.TP
+.BR \-h
+Shows options summary
+.TP
+.BR \-v
+Prints version information
+.SH ENVIRONMENT VARIABLES
+.TP
+.BR NO_COLOR
+If defined, causes the program to quit with an error exit code as colour support is required.
+.TP
+.BR COLORTERM
+If defined, this value is checked to see if terminal colour support is enabled. Lolcat check succeeds if the variable has either the values \fBtruecolor\fP or \fB24bit\fP
+.TP
+.BR TERM
+Secondary variable checked to see if terminal colour support is enabled. If the value contains the string \fB\-truecolor\fP or \fB\-256color\fP, the check succeeds. If the value is set to \fBdumb\fP, lolcat quits with an error exit code.
+.SH EXAMPLES
+.TP
+.BR lolcat\ f\ -\ g
+Output f's contents, then standard input, then g's contents
+.TP
+.BR lolcat
+Copy standard input to standard output
+.SH AUTHOR
+lolcat was written by Christopher Birmingham
+.SH SEE ALSO
+.BR fortune (6),
+.BR cowsay (6),
+.BR figlet (6)
+
