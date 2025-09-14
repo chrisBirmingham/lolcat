@@ -1,5 +1,5 @@
-/* Needed for getline */
-#define _POSIX_C_SOURCE 200809L
+/* Needed for getline and bsd compat */
+#define _DEFAULT_SOURCE
 
 #include <errno.h>
 #include <getopt.h>
@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "colour.h"
 
 /* Pull in external getopt globals */
@@ -21,12 +20,6 @@ extern int opterr;
 static const double DEFAULT_SPREAD = 2.0;
 static const double DEFAULT_FREQ = 0.3;
 static const char* STDIN_ARGV[] = {"-", NULL};
-
-const struct Colour default_colour = {
-  DEFAULT_SPREAD,
-  DEFAULT_FREQ,
-  false
-};
 
 static const char* VERSION = "1.0.0\n";
 
@@ -49,24 +42,18 @@ static const char* USAGE = "Usage: lolcat [OPTION]... [FILE]...\n"
 static void error(const char* fmt, ...)
   __attribute__ ((format (printf, 1, 2)));
 
-static int rand_int()
+static inline unsigned int rand_int()
 {
-  /**
-   * Attempt to reduce modulo bias in standard C rand
-   * https://stackoverflow.com/questions/10984974/why-do-people-say-there-is-modulo-bias-when-using-a-random-number-generator
-   */
-  int max_int = 256;
-  int r;
-  int range = RAND_MAX - (((RAND_MAX % max_int) + 1) % max_int);
-
-  do {
-    r = rand();
-  } while (r > range);
-
-  return r % max_int + 1;
+  return arc4random_uniform(256) + 1;
 }
 
-static int colourise_file(FILE* fp, const struct Colour* colour, int seed)
+static void colourise_string(const char* str, FILE* fp)
+{
+  struct Colour default_colour = {DEFAULT_SPREAD, DEFAULT_FREQ, false};
+  rgb_fputs(str, strlen(str), &default_colour, rand_int(), fp);
+}
+
+static unsigned int colourise_file(FILE* fp, const struct Colour* colour, unsigned int seed)
 {
   char* buf = NULL;
   size_t len = 0;
@@ -80,7 +67,7 @@ static int colourise_file(FILE* fp, const struct Colour* colour, int seed)
 
   if (!feof(fp)) {
     error("\nEncountered error while reading stream: %s\n", strerror(errno));
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   return seed;
@@ -111,7 +98,7 @@ static void error(const char* fmt, ...)
   vsnprintf(buf, alloc_len, fmt, args);
   va_end(args);
   
-  rgb_fputs(buf, alloc_len - 1, &default_colour, rand_int(), stderr);
+  colourise_string(buf, stderr);
   free(buf);
 }
 
@@ -145,16 +132,14 @@ static int int_input(const char* in)
 
 static FILE* open_file(const char* path)
 {
-  FILE* fp = stdin;
-
   if (!is_stdin(path)) {
-    fp = fopen(path, "r");
+    return fopen(path, "r");
   }
 
-  return fp;
+  return stdin;
 }
 
-static int cat(char** argv, const struct Colour* colour, int seed)
+static int cat(char** argv, const struct Colour* colour, unsigned int seed)
 {
   /* argv modification influenced by busybox */
   if (*argv == NULL) {
@@ -171,10 +156,6 @@ static int cat(char** argv, const struct Colour* colour, int seed)
     }
 
     seed = colourise_file(fp, colour, seed);
-
-    if (seed < 0) {
-      return EXIT_FAILURE;
-    }
 
     if (!is_stdin(path)) {
       fclose(fp);
@@ -196,8 +177,6 @@ int main(int argc, char** argv)
     abort();
   }
 
-  srand(time(NULL));
-
   int opt;
   int seed = 0;
   bool invert = false;
@@ -208,10 +187,10 @@ int main(int argc, char** argv)
   while ((opt = getopt(argc, argv, "p:F:S:ivh")) != -1) {
     switch (opt) {
       case 'v':
-        rgb_puts(VERSION, strlen(VERSION), &default_colour, rand_int());
+        colourise_string(VERSION, stdout);
         return EXIT_SUCCESS;
       case 'h':
-        rgb_puts(USAGE, strlen(USAGE), &default_colour, rand_int());
+        colourise_string(USAGE, stdout);
         return EXIT_SUCCESS;
       case 'S':
         seed = int_input(optarg);
@@ -248,13 +227,11 @@ int main(int argc, char** argv)
     }
   }
 
-  seed = !seed ? rand_int() : seed;
+  if (seed == 0) {
+    seed = rand_int();
+  }
 
-  struct Colour colour = {
-    spread,
-    freq,
-    invert
-  };
+  struct Colour colour = {spread, freq, invert};
 
   argv += optind;
 

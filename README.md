@@ -9,6 +9,7 @@ in the `original-main` branch.
 * (gnu) make
 * A version of gcc or clang that supports c11
 * A (*)nix based operating system. 
+* glibc >= 2.36 or libbsd on non bsd systems for arc4random support
 
 ## Installation
 

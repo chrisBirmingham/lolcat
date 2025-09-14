@@ -22,18 +22,21 @@ static const char* TAB_SHIFT = "        ";
 
 static enum ColourSupport COLOUR_SUPPORT = COLOUR_TRUE;
 
-static inline int ansi_domain(int c)
+static inline unsigned int ansi_domain(unsigned int c)
 {
   return 6 * (c / 256.0);
 }
 
-static inline int true_colour(double angle)
+static inline unsigned int true_colour(double angle)
 {
   return sin(angle) * HUE_WIDTH + HUE_CENTRE;
 }
 
-static int truecolour2rgb(int r, int g, int b)
-{
+static unsigned int truecolour2rgb(
+  unsigned int r,
+  unsigned int g,
+  unsigned int b
+) {
   float sep = 42.5;
 
   while (r > sep && g > sep && b > sep) {
@@ -55,9 +58,9 @@ static int truecolour2rgb(int r, int g, int b)
 static void print_char(wchar_t c, double angle, FILE* fp)
 {
   double pi = acos(-1);
-  int r = true_colour(angle);
-  int g = true_colour(angle + 2 * pi / 3);
-  int b = true_colour(angle + 4 * pi / 3);
+  unsigned int r = true_colour(angle);
+  unsigned int g = true_colour(angle + 2 * pi / 3);
+  unsigned int b = true_colour(angle + 4 * pi / 3);
 
   wchar_t print[3] = {0};
 
@@ -69,15 +72,20 @@ static void print_char(wchar_t c, double angle, FILE* fp)
   }
 
   if (COLOUR_SUPPORT == COLOUR_256) {
-    int rgb = truecolour2rgb(r, g, b);
+    unsigned int rgb = truecolour2rgb(r, g, b);
     fprintf(fp, "\x1b[38;5;%dm%S", rgb, print);
   } else {
     fprintf(fp, "\x1b[38;2;%d;%d;%dm%S", r, g, b, print);
   }
 }
 
-static int print_str(const char* str, size_t len, const struct Colour* colour, int seed, FILE* fp)
-{
+static unsigned int print_str(
+  const char* str,
+  size_t len,
+  const struct Colour* colour,
+  unsigned int seed,
+  FILE* fp
+) {
   const char* end = str + len;
   wchar_t c;
 
@@ -105,7 +113,12 @@ static int print_str(const char* str, size_t len, const struct Colour* colour, i
     }
 
     if (c == TAB) {
-      print_str(TAB_SHIFT, 8, colour, seed, fp);
+      if (colour->invert) {
+        print_str(TAB_SHIFT, 8, colour, seed, fp);
+      } else {
+        fputs(TAB_SHIFT, fp);
+      }
+
       seed += 7;
       continue;
     }
@@ -117,8 +130,13 @@ static int print_str(const char* str, size_t len, const struct Colour* colour, i
   return seed;
 }
 
-int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed, FILE* fp)
-{
+unsigned int rgb_fputs(
+  const char* str,
+  size_t len,
+  const struct Colour* colour,
+  unsigned int seed,
+  FILE* fp
+) {
   if (colour->invert) {
     fputs("\x1b[7m", stdout);
   }
@@ -132,11 +150,6 @@ int rgb_fputs(const char* str, size_t len, const struct Colour* colour, int seed
   }
 
   return seed;
-}
-
-int rgb_puts(const char* str, size_t len, const struct Colour* colour, int seed)
-{
-  return rgb_fputs(str, len, colour, seed, stdout);
 }
 
 int detect_colour_support()

@@ -8,8 +8,21 @@ struct Colour {
   bool invert;
 };
 
-int rgb_fputs(const char *str, size_t len, const struct Colour* colour, int seed, FILE* fp);
+unsigned int rgb_fputs(
+  const char* str,
+  size_t len,
+  const struct Colour* colour,
+  unsigned int seed,
+  FILE* fp
+);
 
-int rgb_puts(const char* str, size_t len, const struct Colour* colour, int seed);
+inline unsigned int rgb_puts(
+  const char* str,
+  size_t len,
+  const struct Colour* colour,
+  unsigned int seed
+) {
+  return rgb_fputs(str, len, colour, seed, stdout);
+}
 
 int detect_colour_support();
