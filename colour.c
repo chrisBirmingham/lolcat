@@ -15,6 +15,7 @@ enum ColourSupport {
 
 static int TAB = 9;
 static int LINE_FEED = 10;
+static int SPACE = 32;
 
 static const int HUE_WIDTH = 127;
 static const int HUE_CENTRE = 128;
@@ -64,7 +65,7 @@ static void print_char(wchar_t c, double angle, FILE* fp)
 
   wchar_t print[3] = {0};
 
-  if (iswcntrl(c) && c != LINE_FEED) {
+  if (iswcntrl(c)) {
     print[0] = L'^';
     print[1] = c ^ 0x40;
   } else {
@@ -120,6 +121,9 @@ static unsigned int print_str(
       }
 
       seed += 7;
+      continue;
+    } else if (c == LINE_FEED || (c == SPACE && !colour->invert)) {
+      fputc(c, fp);
       continue;
     }
 
